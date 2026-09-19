@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,7 +23,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 #[Fillable(['user_id', 'registration_number', 'qualification'])]
 class Teacher extends Model implements Auditable
 {
-    use \OwenIt\Auditing\Auditable, SoftDeletes;
+    use HasFactory, \OwenIt\Auditing\Auditable, SoftDeletes;
 
     public function user(): BelongsTo
     {

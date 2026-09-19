@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import "@heroui/styles";
+@import '@heroui/styles';
 
 @import 'tw-animate-css';
 
@@ -73,7 +73,7 @@
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
+    --shadcn-muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
@@ -141,4 +141,8 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+.table-root .table__column {
+    color: var(--muted-foreground);
 }

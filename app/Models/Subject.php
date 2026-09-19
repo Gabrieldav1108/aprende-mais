@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -21,7 +22,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 #[Fillable(['name', 'code', 'workload_hours'])]
 class Subject extends Model implements Auditable
 {
-    use \OwenIt\Auditing\Auditable, SoftDeletes;
+    use HasFactory, \OwenIt\Auditing\Auditable, SoftDeletes;
 
     public function classroomSubjects(): HasMany
     {
