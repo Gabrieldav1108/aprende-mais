@@ -30,6 +30,19 @@ class DefaultUsersSeeder extends Seeder
         Student::firstOrCreate(['user_id' => $student->id], [
             'enrollment_number' => 'A00001',
         ]);
+
+        $this->createUser('Arthur (Admin)', 'arthur.admin@aprendemais.com', 'admin');
+
+        $teacher = $this->createUser('Arthur (Professor)', 'arthur.professor@aprendemais.com', 'teacher');
+        Teacher::firstOrCreate(['user_id' => $teacher->id], [
+            'registration_number' => 'T00002',
+            'qualification' => 'Licenciatura',
+        ]);
+
+        $student = $this->createUser('Arthur (Aluno)', 'arthur.aluno@aprendemais.com', 'student');
+        Student::firstOrCreate(['user_id' => $student->id], [
+            'enrollment_number' => 'A00002',
+        ]);
     }
 
     private function createUser(string $name, string $email, string $role): User

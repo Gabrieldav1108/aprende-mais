@@ -42,6 +42,14 @@ fi
 echo "[entrypoint] Running migrations"
 php artisan migrate --force --no-interaction
 
+echo "[entrypoint] Seeding roles and permissions"
+php artisan db:seed --class=RolesAndPermissionsSeeder --force --no-interaction
+
+if ! grep -qE '^APP_ENV=production' .env; then
+    echo "[entrypoint] Seeding default users"
+    php artisan db:seed --class=DefaultUsersSeeder --force --no-interaction
+fi
+
 if [ ! -L public/storage ]; then
     php artisan storage:link --no-interaction || true
 fi

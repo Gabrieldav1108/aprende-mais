@@ -17,10 +17,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RolesAndPermissionsSeeder::class);
 
-        User::factory()->create([
+        User::firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Test User',
-            'email' => 'test@example.com',
-        ])->assignRole('student');
+            'password' => 'password',
+            'email_verified_at' => now(),
+        ])->syncRoles('student');
 
         if (! app()->isProduction()) {
             $this->call(DefaultUsersSeeder::class);
