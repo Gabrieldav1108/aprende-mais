@@ -7,6 +7,7 @@ import type {
     Teacher,
 } from '@/components/classroom/subjects-table';
 import type { Classroom } from '@/components/classroom/table';
+import { useCan } from '@/hooks/use-can';
 import { classroom as classroomIndex, dashboard } from '@/routes';
 import classroom from '@/routes/classroom';
 
@@ -21,6 +22,10 @@ export default function ClassroomShow({
     classroomSubjects,
     teachers,
 }: Props) {
+    const canUpdateClassroom = useCan('classrooms.update');
+    const canCreateSubjects = useCan('subjects.create');
+    const canDeleteSubjects = useCan('subjects.delete');
+
     setLayoutProps({
         breadcrumbs: [
             { title: 'Dashboard', href: dashboard() },
@@ -33,14 +38,17 @@ export default function ClassroomShow({
         <>
             <Head title={room.name} />
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
-                <ClassroomForm classroom={room} />
-                <ClassroomSubjectForm
-                    classroomId={room.id}
-                    teachers={teachers}
-                />
+                {canUpdateClassroom && <ClassroomForm classroom={room} />}
+                {canCreateSubjects && (
+                    <ClassroomSubjectForm
+                        classroomId={room.id}
+                        teachers={teachers}
+                    />
+                )}
                 <ClassroomSubjectsTable
                     classroomId={room.id}
                     classroomSubjects={classroomSubjects}
+                    canRemove={canDeleteSubjects}
                 />
             </div>
         </>

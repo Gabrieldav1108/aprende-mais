@@ -12,7 +12,7 @@ class UpdateClassroomRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('update', $this->route('classroom'));
     }
 
     /**

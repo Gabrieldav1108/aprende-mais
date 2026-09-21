@@ -21,11 +21,13 @@ export type ClassroomSubject = {
 type Props = {
     classroomId: number;
     classroomSubjects: ClassroomSubject[];
+    canRemove: boolean;
 };
 
 export default function ClassroomSubjectsTable({
     classroomId,
     classroomSubjects,
+    canRemove,
 }: Props) {
     return (
         <Table>
@@ -55,17 +57,19 @@ export default function ClassroomSubjectsTable({
                                     {item.teacher.user.name}
                                 </Table.Cell>
                                 <Table.Cell>
-                                    <Link
-                                        href={classroom.subjects.destroy([
-                                            classroomId,
-                                            item.id,
-                                        ])}
-                                        method="delete"
-                                        as="button"
-                                        className="text-sm text-destructive hover:underline"
-                                    >
-                                        Remover
-                                    </Link>
+                                    {canRemove && (
+                                        <Link
+                                            href={classroom.subjects.destroy([
+                                                classroomId,
+                                                item.id,
+                                            ])}
+                                            method="delete"
+                                            as="button"
+                                            className="text-sm text-destructive hover:underline"
+                                        >
+                                            Remover
+                                        </Link>
+                                    )}
                                 </Table.Cell>
                             </Table.Row>
                         )}

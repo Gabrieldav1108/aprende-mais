@@ -41,6 +41,8 @@ class ClassroomSubjectController extends Controller
      */
     public function destroy(Classroom $classroom, ClassroomSubject $classroomSubject): RedirectResponse
     {
+        $this->authorize('delete', $classroomSubject);
+
         try {
             $this->classroomSubjects->delete($classroomSubject);
 

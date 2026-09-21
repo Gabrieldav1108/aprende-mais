@@ -24,7 +24,7 @@ test('authenticated users can list classrooms', function () {
 });
 
 test('a classroom can be created', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $response = $this->post(route('classroom.store'), [
         'name' => 'Turma A',
@@ -41,7 +41,7 @@ test('a classroom can be created', function () {
 });
 
 test('a classroom requires a valid shift', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $response = $this->post(route('classroom.store'), [
         'name' => 'Turma A',
@@ -53,7 +53,7 @@ test('a classroom requires a valid shift', function () {
 });
 
 test('a classroom can be updated', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create([
         'name' => 'Turma A',
         'school_year' => '2026',
@@ -76,7 +76,7 @@ test('a classroom can be updated', function () {
 });
 
 test('a friendly error is shown when creating a classroom fails', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $this->mock(ClassroomRepository::class, function ($mock) {
         $mock->shouldReceive('create')->andThrow(new RepositoryException('boom'));
     });
@@ -92,7 +92,7 @@ test('a friendly error is shown when creating a classroom fails', function () {
 });
 
 test('a friendly error is shown when updating a classroom fails', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
     $this->mock(ClassroomRepository::class, function ($mock) {
         $mock->shouldReceive('update')->andThrow(new RepositoryException('boom'));
@@ -109,7 +109,7 @@ test('a friendly error is shown when updating a classroom fails', function () {
 });
 
 test('updating a classroom requires a valid shift', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
 
     $response = $this->put(route('classroom.update', $classroom), [
@@ -122,7 +122,7 @@ test('updating a classroom requires a valid shift', function () {
 });
 
 test('a classroom shows its subjects and teachers', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
     $subject = Subject::factory()->create();
     $teacher = Teacher::factory()->create();
@@ -138,7 +138,7 @@ test('a classroom shows its subjects and teachers', function () {
 });
 
 test('a subject can be added to a classroom with a teacher', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
     $teacher = Teacher::factory()->create();
 
@@ -158,7 +158,7 @@ test('a subject can be added to a classroom with a teacher', function () {
 });
 
 test('a subject requires an existing teacher', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
 
     $response = $this->post(route('classroom.subjects.store', $classroom), [
@@ -172,7 +172,7 @@ test('a subject requires an existing teacher', function () {
 });
 
 test('a friendly error is shown when adding a subject fails', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
     $teacher = Teacher::factory()->create();
     $this->mock(ClassroomSubjectRepository::class, function ($mock) {
@@ -191,7 +191,7 @@ test('a friendly error is shown when adding a subject fails', function () {
 });
 
 test('a subject can be removed from a classroom', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
     $subject = Subject::factory()->create();
     $teacher = Teacher::factory()->create();
@@ -208,7 +208,7 @@ test('a subject can be removed from a classroom', function () {
 });
 
 test('a friendly error is shown when removing a subject fails', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
     $subject = Subject::factory()->create();
     $teacher = Teacher::factory()->create();

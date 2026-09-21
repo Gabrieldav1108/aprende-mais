@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ClassroomSubject;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -12,7 +13,7 @@ class StoreClassroomSubjectRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', ClassroomSubject::class);
     }
 
     /**
