@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, NotebookText } from 'lucide-react';
+import {
+    BookOpen,
+    CalendarDays,
+    FolderGit2,
+    GraduationCap,
+    LayoutGrid,
+    NotebookText,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,7 +20,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { classroom, dashboard } from '@/routes';
+import { academicTerm, classroom, course, dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -21,6 +28,16 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Cursos',
+        href: course(),
+        icon: GraduationCap,
+    },
+    {
+        title: 'Períodos letivos',
+        href: academicTerm(),
+        icon: CalendarDays,
     },
     {
         title: 'Turmas',
