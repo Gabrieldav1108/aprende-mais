@@ -6,31 +6,35 @@ use App\Exceptions\RepositoryException;
 use App\Models\Classroom;
 use App\Models\ClassroomSubject;
 use App\Models\Subject;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class ClassroomSubjectRepository
 {
     /**
-     * Create a subject and attach it to the classroom with a teacher.
-     *
-     * @param  array<string, mixed>  $subjectData
+     * Offer an existing subject of the classroom's course, taught by the given teacher.
      */
-    public function createForClassroom(Classroom $classroom, array $subjectData, int $teacherId): ClassroomSubject
+    public function attachToClassroom(Classroom $classroom, int $subjectId, int $teacherId): ClassroomSubject
     {
         try {
-            return DB::transaction(function () use ($classroom, $subjectData, $teacherId) {
-                $subject = Subject::create($subjectData);
+            $subject = Subject::query()->findOrFail($subjectId);
 
-                return $classroom->classroomSubjects()->create([
-                    'subject_id' => $subject->id,
-                    'teacher_id' => $teacherId,
+            if ($subject->course_id !== $classroom->course_id) {
+                throw new RepositoryException('Subject does not belong to the classroom course.', [
+                    'classroom_id' => $classroom->id,
+                    'subject_id' => $subjectId,
                 ]);
-            });
+            }
+
+            return $classroom->classroomSubjects()->create([
+                'subject_id' => $subject->id,
+                'teacher_id' => $teacherId,
+            ]);
+        } catch (RepositoryException $e) {
+            throw $e;
         } catch (Throwable $e) {
             throw new RepositoryException(
                 'Failed to add subject to classroom.',
-                ['classroom_id' => $classroom->id, 'subject_data' => $subjectData, 'teacher_id' => $teacherId],
+                ['classroom_id' => $classroom->id, 'subject_id' => $subjectId, 'teacher_id' => $teacherId],
                 $e,
             );
         }
