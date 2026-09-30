@@ -15,6 +15,11 @@ test('the seeder creates the roles and permissions', function () {
             'classrooms.delete',
             'subjects.create',
             'subjects.delete',
+            'courses.create',
+            'courses.update',
+            'courses.delete',
+            'terms.create',
+            'terms.update',
             'users.manage',
         ]);
 });
@@ -24,7 +29,7 @@ test('the seeder can run twice without duplicating records', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 
     expect(Role::count())->toBe(3)
-        ->and(Permission::count())->toBe(6);
+        ->and(Permission::count())->toBe(11);
 });
 
 test('the seeder bootstraps an admin when credentials are configured', function () {

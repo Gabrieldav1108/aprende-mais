@@ -16,11 +16,25 @@ function classroomWithSubject(): array
     $classroom = Classroom::factory()->create();
     $classroomSubject = ClassroomSubject::create([
         'classroom_id' => $classroom->id,
-        'subject_id' => Subject::factory()->create()->id,
+        'subject_id' => Subject::factory()->create(['course_id' => $classroom->course_id])->id,
         'teacher_id' => Teacher::factory()->create()->id,
     ]);
 
     return [$classroom, $classroomSubject];
+}
+
+function classroomUpdatePayload(Classroom $classroom, array $overrides = []): array
+{
+    return [
+        'academic_term_id' => $classroom->academic_term_id,
+        'name' => 'Turma B',
+        'code' => 'B-2027',
+        'term_number' => 2,
+        'shift' => 'evening',
+        'status' => 'active',
+        'capacity' => 30,
+        ...$overrides,
+    ];
 }
 
 dataset('non-admin users', [
@@ -31,7 +45,7 @@ dataset('non-admin users', [
 
 test('non-admin users cannot create classrooms', function (User $user) {
     $this->actingAs($user)
-        ->post(route('classroom.store'), ['name' => 'Turma A', 'school_year' => '2026', 'shift' => 'morning'])
+        ->post(route('classroom.store'), classroomPayload())
         ->assertForbidden();
 
     $this->assertDatabaseMissing('classrooms', ['name' => 'Turma A']);
@@ -41,7 +55,7 @@ test('non-admin users cannot update classrooms', function (User $user) {
     $classroom = Classroom::factory()->create(['name' => 'Turma A']);
 
     $this->actingAs($user)
-        ->put(route('classroom.update', $classroom), ['name' => 'Turma B', 'school_year' => '2027', 'shift' => 'evening'])
+        ->put(route('classroom.update', $classroom), classroomUpdatePayload($classroom))
         ->assertForbidden();
 
     $this->assertDatabaseHas('classrooms', ['id' => $classroom->id, 'name' => 'Turma A']);
@@ -49,18 +63,17 @@ test('non-admin users cannot update classrooms', function (User $user) {
 
 test('non-admin users cannot add subjects to a classroom', function (User $user) {
     $classroom = Classroom::factory()->create();
+    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
     $teacher = Teacher::factory()->create();
 
     $this->actingAs($user)
         ->post(route('classroom.subjects.store', $classroom), [
-            'name' => 'Matemática',
-            'code' => 'MAT-101',
-            'workload_hours' => 80,
+            'subject_id' => $subject->id,
             'teacher_id' => $teacher->id,
         ])
         ->assertForbidden();
 
-    $this->assertDatabaseMissing('subjects', ['code' => 'MAT-101']);
+    $this->assertDatabaseCount('classroom_subjects', 0);
 })->with('non-admin users');
 
 test('non-admin users cannot remove subjects from a classroom', function (User $user) {
@@ -85,34 +98,33 @@ test('users granted a permission can perform the matching action', function () {
     $teacher->givePermissionTo('classrooms.create');
 
     $this->actingAs($teacher)
-        ->post(route('classroom.store'), ['name' => 'Turma A', 'school_year' => '2026', 'shift' => 'morning'])
+        ->post(route('classroom.store'), classroomPayload())
         ->assertRedirect(route('classroom'));
 
     $classroom = Classroom::factory()->create();
 
     $this->actingAs($teacher)
-        ->put(route('classroom.update', $classroom), ['name' => 'Turma B', 'school_year' => '2027', 'shift' => 'evening'])
+        ->put(route('classroom.update', $classroom), classroomUpdatePayload($classroom))
         ->assertForbidden();
 });
 
 test('admins can perform every classroom and subject action', function () {
     $admin = User::factory()->admin()->create();
     [$classroom, $classroomSubject] = classroomWithSubject();
+    $newSubject = Subject::factory()->create(['course_id' => $classroom->course_id]);
     $teacher = Teacher::factory()->create();
 
     $this->actingAs($admin)
-        ->post(route('classroom.store'), ['name' => 'Turma A', 'school_year' => '2026', 'shift' => 'morning'])
+        ->post(route('classroom.store'), classroomPayload())
         ->assertRedirect(route('classroom'));
 
     $this->actingAs($admin)
-        ->put(route('classroom.update', $classroom), ['name' => 'Turma B', 'school_year' => '2027', 'shift' => 'evening'])
+        ->put(route('classroom.update', $classroom), classroomUpdatePayload($classroom))
         ->assertRedirect(route('classroom.show', $classroom));
 
     $this->actingAs($admin)
         ->post(route('classroom.subjects.store', $classroom), [
-            'name' => 'Matemática',
-            'code' => 'MAT-101',
-            'workload_hours' => 80,
+            'subject_id' => $newSubject->id,
             'teacher_id' => $teacher->id,
         ])
         ->assertRedirect(route('classroom.show', $classroom));

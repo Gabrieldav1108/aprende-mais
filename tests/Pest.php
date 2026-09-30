@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\AcademicTerm;
+use App\Models\Course;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +49,29 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Build a valid classroom payload backed by a course and an open term of the same school.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function classroomPayload(array $overrides = []): array
+{
+    $course = Course::factory()->create();
+    $term = AcademicTerm::factory()->create(['school_id' => $course->school_id]);
+
+    return [
+        'course_id' => $course->id,
+        'academic_term_id' => $term->id,
+        'name' => 'Turma A',
+        'code' => 'A-2026',
+        'term_number' => 3,
+        'shift' => 'morning',
+        'status' => 'active',
+        'capacity' => 40,
+        'room' => 'Sala 101',
+        ...$overrides,
+    ];
 }
