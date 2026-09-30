@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests;
 
+use App\Concerns\ClassroomValidationRules;
 use App\Models\Classroom;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreClassroomRequest extends FormRequest
 {
+    use ClassroomValidationRules;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -24,9 +27,8 @@ class StoreClassroomRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'school_year' => ['required', 'string', 'max:255'],
-            'shift' => ['required', 'in:morning,afternoon,evening'],
+            'course_id' => ['required', 'integer', $this->existsInSchool('courses')],
+            ...$this->classroomRules(),
         ];
     }
 }

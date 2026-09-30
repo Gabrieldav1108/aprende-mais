@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\ClassroomSubject;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreClassroomSubjectRequest extends FormRequest
 {
@@ -23,11 +24,15 @@ class StoreClassroomSubjectRequest extends FormRequest
      */
     public function rules(): array
     {
+        $classroom = $this->route('classroom');
+
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:255'],
-            'workload_hours' => ['required', 'integer', 'min:1'],
-            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'subject_id' => [
+                'required', 'integer',
+                Rule::exists('subjects', 'id')->where('course_id', $classroom->course_id)->whereNull('deleted_at'),
+                Rule::unique('classroom_subjects', 'subject_id')->where('classroom_id', $classroom->id)->whereNull('deleted_at'),
+            ],
+            'teacher_id' => ['required', 'integer', Rule::exists('teachers', 'id')->whereNull('deleted_at')],
         ];
     }
 }
