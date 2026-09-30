@@ -1,20 +1,38 @@
-import { Button, Input, Label, ListBox, Select, Spinner } from '@heroui/react';
+import { Button, Input, Label, Spinner } from '@heroui/react';
 import { Form } from '@inertiajs/react';
-import { shiftLabels } from '@/components/classroom/table';
-import type { Classroom } from '@/components/classroom/table';
+import type { Classroom, Teacher } from '@/components/classroom/table';
+import FormSelect, { optionsFromMap } from '@/components/form-select';
 import InputError from '@/components/input-error';
 import classroom from '@/routes/classroom';
 
-const shiftOptions = Object.entries(shiftLabels).map(([id, label]) => ({
-    id,
-    label,
-}));
-
-type Props = {
-    classroom?: Pick<Classroom, 'id' | 'name' | 'school_year' | 'shift'>;
+export type CourseOption = {
+    id: number;
+    name: string;
+    code: string;
 };
 
-export default function ClassroomForm({ classroom: existing }: Props) {
+export type TermOption = {
+    id: number;
+    name: string;
+};
+
+type Props = {
+    classroom?: Classroom;
+    courses: CourseOption[];
+    terms: TermOption[];
+    teachers: Teacher[];
+    shifts: Record<string, string>;
+    statuses: Record<string, string>;
+};
+
+export default function ClassroomForm({
+    classroom: existing,
+    courses,
+    terms,
+    teachers,
+    shifts,
+    statuses,
+}: Props) {
     const isEditing = Boolean(existing);
 
     return (
@@ -31,6 +49,35 @@ export default function ClassroomForm({ classroom: existing }: Props) {
             >
                 {({ processing, errors }) => (
                     <>
+                        {!isEditing && (
+                            <div className="sm:col-span-2">
+                                <FormSelect
+                                    name="course_id"
+                                    label="Curso"
+                                    isRequired
+                                    options={courses.map((course) => ({
+                                        id: course.id,
+                                        label: `${course.code} · ${course.name}`,
+                                    }))}
+                                    error={errors.course_id}
+                                />
+                            </div>
+                        )}
+
+                        <div className="sm:col-span-2">
+                            <FormSelect
+                                name="academic_term_id"
+                                label="Período letivo"
+                                isRequired
+                                options={terms.map((term) => ({
+                                    id: term.id,
+                                    label: term.name,
+                                }))}
+                                defaultValue={existing?.academic_term_id}
+                                error={errors.academic_term_id}
+                            />
+                        </div>
+
                         <div className="grid gap-2 sm:col-span-2">
                             <Label htmlFor="name">Nome</Label>
                             <Input
@@ -44,43 +91,86 @@ export default function ClassroomForm({ classroom: existing }: Props) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="school_year">Ano letivo</Label>
+                            <Label htmlFor="code">Código</Label>
                             <Input
-                                id="school_year"
-                                name="school_year"
-                                placeholder="2026"
-                                defaultValue={existing?.school_year}
+                                id="code"
+                                name="code"
+                                placeholder="ES-3A"
+                                defaultValue={existing?.code}
                                 required
                             />
-                            <InputError message={errors.school_year} />
+                            <InputError message={errors.code} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Select
-                                name="shift"
-                                isRequired
-                                placeholder="Selecione"
-                                defaultSelectedKey={existing?.shift}
-                            >
-                                <Label>Turno</Label>
-                                <Select.Trigger>
-                                    <Select.Value />
-                                    <Select.Indicator />
-                                </Select.Trigger>
-                                <Select.Popover>
-                                    <ListBox items={shiftOptions}>
-                                        {(item) => (
-                                            <ListBox.Item
-                                                id={item.id}
-                                                textValue={item.label}
-                                            >
-                                                {item.label}
-                                            </ListBox.Item>
-                                        )}
-                                    </ListBox>
-                                </Select.Popover>
-                            </Select>
-                            <InputError message={errors.shift} />
+                            <Label htmlFor="term_number">
+                                Semestre do curso
+                            </Label>
+                            <Input
+                                id="term_number"
+                                name="term_number"
+                                type="number"
+                                min={1}
+                                max={20}
+                                placeholder="1"
+                                defaultValue={existing?.term_number}
+                                required
+                            />
+                            <InputError message={errors.term_number} />
+                        </div>
+
+                        <FormSelect
+                            name="shift"
+                            label="Turno"
+                            isRequired
+                            options={optionsFromMap(shifts)}
+                            defaultValue={existing?.shift}
+                            error={errors.shift}
+                        />
+
+                        <FormSelect
+                            name="status"
+                            label="Status"
+                            isRequired
+                            options={optionsFromMap(statuses)}
+                            defaultValue={existing?.status ?? 'active'}
+                            error={errors.status}
+                        />
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="capacity">Vagas</Label>
+                            <Input
+                                id="capacity"
+                                name="capacity"
+                                type="number"
+                                min={1}
+                                placeholder="40"
+                                defaultValue={existing?.capacity ?? 40}
+                                required
+                            />
+                            <InputError message={errors.capacity} />
+                        </div>
+
+                        <FormSelect
+                            name="homeroom_teacher_id"
+                            label="Professor regente"
+                            options={teachers.map((teacher) => ({
+                                id: teacher.id,
+                                label: teacher.user.name,
+                            }))}
+                            defaultValue={existing?.homeroom_teacher_id}
+                            error={errors.homeroom_teacher_id}
+                        />
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="room">Sala</Label>
+                            <Input
+                                id="room"
+                                name="room"
+                                placeholder="Sala 101"
+                                defaultValue={existing?.room ?? ''}
+                            />
+                            <InputError message={errors.room} />
                         </div>
 
                         <Button

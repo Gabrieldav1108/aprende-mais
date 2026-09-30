@@ -1,41 +1,64 @@
-import { Table } from '@heroui/react';
+import { EmptyState, Table } from '@heroui/react';
 import { Link } from '@inertiajs/react';
 import classroom from '@/routes/classroom';
+
+export type Teacher = {
+    id: number;
+    user: { name: string };
+};
 
 export type Classroom = {
     id: number;
     name: string;
-    school_year: string;
-    shift: 'morning' | 'afternoon' | 'evening';
-    classroom_subjects_count: number;
+    code: string;
+    term_number: number;
+    shift: string;
+    status: string;
+    capacity: number;
+    room: string | null;
+    course_id: number;
+    academic_term_id: number;
+    homeroom_teacher_id: number | null;
+    course?: { id: number; name: string };
+    academic_term?: { id: number; name: string };
+    homeroom_teacher?: Teacher | null;
+    classroom_subjects_count?: number;
+    classroom_students_count?: number;
 };
 
-export const shiftLabels: Record<Classroom['shift'], string> = {
-    morning: 'Manhã',
-    afternoon: 'Tarde',
-    evening: 'Noite',
+type Props = {
+    classrooms: Classroom[];
+    shifts: Record<string, string>;
+    statuses: Record<string, string>;
 };
 
 export default function ClassroomTable({
     classrooms,
-}: {
-    classrooms: Classroom[];
-}) {
+    shifts,
+    statuses,
+}: Props) {
     return (
         <Table>
             <Table.ScrollContainer>
                 <Table.Content aria-label="Turmas">
                     <Table.Header>
                         <Table.Column isRowHeader>Nome</Table.Column>
-                        <Table.Column>Ano letivo</Table.Column>
+                        <Table.Column>Curso</Table.Column>
+                        <Table.Column>Período</Table.Column>
                         <Table.Column>Turno</Table.Column>
+                        <Table.Column>Status</Table.Column>
+                        <Table.Column>Ocupação</Table.Column>
                         <Table.Column>Matérias</Table.Column>
                     </Table.Header>
                     <Table.Body
                         items={classrooms}
-                        renderEmptyState={() =>
-                            'Nenhuma turma cadastrada ainda.'
-                        }
+                        renderEmptyState={() => (
+                            <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 py-8 text-center">
+                                <span className="text-sm text-muted-foreground">
+                                    Nenhuma turma encontrada
+                                </span>
+                            </EmptyState>
+                        )}
                     >
                         {(item) => (
                             <Table.Row>
@@ -46,13 +69,23 @@ export default function ClassroomTable({
                                     >
                                         {item.name}
                                     </Link>
+                                    <span className="ml-2 text-xs text-muted-foreground">
+                                        {item.code}
+                                    </span>
                                 </Table.Cell>
-                                <Table.Cell>{item.school_year}</Table.Cell>
+                                <Table.Cell>{item.course?.name}</Table.Cell>
                                 <Table.Cell>
-                                    {shiftLabels[item.shift]}
+                                    {item.academic_term?.name} ·{' '}
+                                    {item.term_number}º
+                                </Table.Cell>
+                                <Table.Cell>{shifts[item.shift]}</Table.Cell>
+                                <Table.Cell>{statuses[item.status]}</Table.Cell>
+                                <Table.Cell>
+                                    {item.classroom_students_count ?? 0}/
+                                    {item.capacity}
                                 </Table.Cell>
                                 <Table.Cell>
-                                    {item.classroom_subjects_count}
+                                    {item.classroom_subjects_count ?? 0}
                                 </Table.Cell>
                             </Table.Row>
                         )}

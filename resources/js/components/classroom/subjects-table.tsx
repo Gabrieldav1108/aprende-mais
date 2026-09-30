@@ -1,11 +1,7 @@
-import { Table } from '@heroui/react';
+import { EmptyState, Table } from '@heroui/react';
 import { Link } from '@inertiajs/react';
+import type { Teacher } from '@/components/classroom/table';
 import classroom from '@/routes/classroom';
-
-export type Teacher = {
-    id: number;
-    user: { name: string };
-};
 
 export type ClassroomSubject = {
     id: number;
@@ -13,7 +9,7 @@ export type ClassroomSubject = {
         id: number;
         name: string;
         code: string;
-        workload_hours: string;
+        workload_hours: number;
     };
     teacher: Teacher;
 };
@@ -42,9 +38,13 @@ export default function ClassroomSubjectsTable({
                     </Table.Header>
                     <Table.Body
                         items={classroomSubjects}
-                        renderEmptyState={() =>
-                            'Nenhuma matéria adicionada ainda.'
-                        }
+                        renderEmptyState={() => (
+                            <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 py-8 text-center">
+                                <span className="text-sm text-muted-foreground">
+                                    Nenhuma matéria ofertada nesta turma
+                                </span>
+                            </EmptyState>
+                        )}
                     >
                         {(item) => (
                             <Table.Row>
