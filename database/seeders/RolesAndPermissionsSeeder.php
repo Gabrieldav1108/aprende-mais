@@ -19,6 +19,11 @@ class RolesAndPermissionsSeeder extends Seeder
         'classrooms.delete',
         'subjects.create',
         'subjects.delete',
+        'courses.create',
+        'courses.update',
+        'courses.delete',
+        'terms.create',
+        'terms.update',
         'users.manage',
     ];
 
