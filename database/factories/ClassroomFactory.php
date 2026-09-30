@@ -2,7 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\ClassroomStatus;
+use App\Enums\Shift;
+use App\Models\AcademicTerm;
 use App\Models\Classroom;
+use App\Models\Course;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,9 +22,17 @@ class ClassroomFactory extends Factory
     public function definition(): array
     {
         return [
+            'course_id' => Course::factory(),
+            'school_id' => fn (array $attributes) => Course::withoutGlobalScopes()->find($attributes['course_id'])->school_id,
+            'academic_term_id' => fn (array $attributes) => AcademicTerm::factory()->create([
+                'school_id' => $attributes['school_id'],
+            ])->id,
             'name' => fake()->word().' '.fake()->numberBetween(1, 9).fake()->randomLetter(),
-            'school_year' => (string) fake()->year(),
-            'shift' => fake()->randomElement(['morning', 'afternoon', 'evening']),
+            'code' => fake()->unique()->bothify('T-####'),
+            'term_number' => fake()->numberBetween(1, 8),
+            'shift' => fake()->randomElement(Shift::cases()),
+            'status' => ClassroomStatus::Active,
+            'capacity' => fake()->numberBetween(20, 60),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 /**
  * @property int $id
+ * @property int|null $school_id
  * @property int $user_id
  * @property string $registration_number
  * @property string|null $qualification
@@ -20,10 +22,10 @@ use OwenIt\Auditing\Contracts\Auditable;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
-#[Fillable(['user_id', 'registration_number', 'qualification'])]
+#[Fillable(['school_id', 'user_id', 'registration_number', 'qualification'])]
 class Teacher extends Model implements Auditable
 {
-    use HasFactory, \OwenIt\Auditing\Auditable, SoftDeletes;
+    use BelongsToSchool, HasFactory, \OwenIt\Auditing\Auditable, SoftDeletes;
 
     public function user(): BelongsTo
     {

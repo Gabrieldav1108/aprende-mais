@@ -20,6 +20,7 @@ class TeacherFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
+            'school_id' => fn (array $attributes) => User::find($attributes['user_id'])?->school_id,
             'registration_number' => fake()->unique()->numerify('T#####'),
             'qualification' => fake()->jobTitle(),
         ];

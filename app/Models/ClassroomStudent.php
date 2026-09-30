@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EnrollmentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ use OwenIt\Auditing\Contracts\Auditable;
  * @property int $classroom_id
  * @property int $student_id
  * @property Carbon $enrolled_at
- * @property string $status
+ * @property EnrollmentStatus $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -33,6 +34,7 @@ class ClassroomStudent extends Model implements Auditable
     {
         return [
             'enrolled_at' => 'datetime',
+            'status' => EnrollmentStatus::class,
         ];
     }
 
