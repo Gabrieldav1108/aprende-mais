@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ClassroomStatus;
+use App\Enums\Shift;
+use App\Enums\TermStatus;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
+use App\Models\AcademicTerm;
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Repositories\ClassroomRepository;
+use App\Repositories\CourseRepository;
 use App\Repositories\TeacherRepository;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,6 +22,7 @@ class ClassroomController extends Controller
 {
     public function __construct(
         private readonly ClassroomRepository $classrooms,
+        private readonly CourseRepository $courses,
         private readonly TeacherRepository $teachers,
     ) {}
 
@@ -24,8 +31,9 @@ class ClassroomController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('classroom', [
+        return Inertia::render('classroom/index', [
             'classrooms' => $this->classrooms->all(),
+            ...$this->formOptions(),
         ]);
     }
 
@@ -52,10 +60,11 @@ class ClassroomController extends Controller
      */
     public function show(Classroom $classroom): Response
     {
-        return Inertia::render('classroom-show', [
-            'classroom' => $classroom,
+        return Inertia::render('classroom/show', [
+            'classroom' => $this->classrooms->withDetails($classroom),
             'classroomSubjects' => $this->classrooms->subjectsFor($classroom),
-            'teachers' => $this->teachers->allWithUser(),
+            'courseSubjects' => $this->courses->subjectsFor($classroom->course),
+            ...$this->formOptions(),
         ]);
     }
 
@@ -75,5 +84,24 @@ class ClassroomController extends Controller
         }
 
         return to_route('classroom.show', $classroom);
+    }
+
+    /**
+     * Options needed by the classroom form.
+     *
+     * @return array<string, mixed>
+     */
+    private function formOptions(): array
+    {
+        return [
+            'courses' => Course::query()->orderBy('name')->get(['id', 'name', 'code', 'duration_terms']),
+            'terms' => AcademicTerm::query()
+                ->whereIn('status', [TermStatus::Planned, TermStatus::Open])
+                ->orderByDesc('year')->orderByDesc('number')
+                ->get(['id', 'name']),
+            'teachers' => $this->teachers->allWithUser(),
+            'shifts' => Shift::options(),
+            'statuses' => ClassroomStatus::options(),
+        ];
     }
 }

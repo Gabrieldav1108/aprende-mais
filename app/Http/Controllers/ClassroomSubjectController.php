@@ -20,9 +20,9 @@ class ClassroomSubjectController extends Controller
     public function store(StoreClassroomSubjectRequest $request, Classroom $classroom): RedirectResponse
     {
         try {
-            $this->classroomSubjects->createForClassroom(
+            $this->classroomSubjects->attachToClassroom(
                 $classroom,
-                $request->safe()->only(['name', 'code', 'workload_hours']),
+                $request->validated('subject_id'),
                 $request->validated('teacher_id'),
             );
 
