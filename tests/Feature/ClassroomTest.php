@@ -86,7 +86,7 @@ test('a classroom can be updated', function () {
         'shift' => Shift::Morning,
     ]);
 
-    $response = $this->put(route('classroom.update', $classroom), [
+    $response = $this->from(route('classroom.show', $classroom))->put(route('classroom.update', $classroom), [
         'academic_term_id' => $classroom->academic_term_id,
         'name' => 'Turma B',
         'code' => 'B-2026',
@@ -114,7 +114,7 @@ test('capacity cannot be lowered below the number of enrolled students', functio
     app(ClassroomRepository::class)->enrollStudent($classroom, Student::factory()->create()->id);
     app(ClassroomRepository::class)->enrollStudent($classroom, Student::factory()->create()->id);
 
-    $response = $this->put(route('classroom.update', $classroom), [
+    $response = $this->from(route('classroom.show', $classroom))->put(route('classroom.update', $classroom), [
         'academic_term_id' => $classroom->academic_term_id,
         'name' => $classroom->name,
         'code' => $classroom->code,
@@ -146,7 +146,7 @@ test('a friendly error is shown when updating a classroom fails', function () {
         $mock->shouldReceive('update')->andThrow(new RepositoryException('boom'));
     });
 
-    $response = $this->put(route('classroom.update', $classroom), [
+    $response = $this->from(route('classroom.show', $classroom))->put(route('classroom.update', $classroom), [
         'academic_term_id' => $classroom->academic_term_id,
         'name' => 'Turma B',
         'code' => 'B-2026',
@@ -164,7 +164,7 @@ test('updating a classroom requires a valid shift', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
 
-    $response = $this->put(route('classroom.update', $classroom), [
+    $response = $this->from(route('classroom.show', $classroom))->put(route('classroom.update', $classroom), [
         'academic_term_id' => $classroom->academic_term_id,
         'name' => 'Turma B',
         'code' => 'B-2026',
@@ -331,4 +331,23 @@ test('enrollment respects the classroom capacity', function () {
     expect(fn () => $repository->enrollStudent($classroom, Student::factory()->create()->id))
         ->toThrow(RepositoryException::class, 'Classroom is full.');
     $this->assertDatabaseCount('classroom_students', 1);
+});
+
+test('after updating a classroom the user returns to the page that opened the modal', function () {
+    $this->actingAs(User::factory()->admin()->create());
+    $classroom = Classroom::factory()->create();
+
+    $this->from(route('classroom'))
+        ->put(route('classroom.update', $classroom), [
+            'academic_term_id' => $classroom->academic_term_id,
+            'name' => 'Turma C',
+            'code' => 'C-2026',
+            'term_number' => 2,
+            'shift' => 'evening',
+            'status' => 'active',
+            'capacity' => 30,
+        ])
+        ->assertRedirect(route('classroom'));
+
+    expect($classroom->fresh()->name)->toBe('Turma C');
 });

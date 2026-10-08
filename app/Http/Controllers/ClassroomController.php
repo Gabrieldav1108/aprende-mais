@@ -83,7 +83,7 @@ class ClassroomController extends Controller
             Inertia::flash('toast', ['type' => 'error', 'message' => __('Não foi possível atualizar a turma.')]);
         }
 
-        return to_route('classroom.show', $classroom);
+        return back();
     }
 
     /**

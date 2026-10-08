@@ -124,6 +124,7 @@ test('admins can perform every classroom and subject action', function () {
         ->assertRedirect(route('classroom'));
 
     $this->actingAs($admin)
+        ->from(route('classroom.show', $classroom))
         ->put(route('classroom.update', $classroom), classroomUpdatePayload($classroom))
         ->assertRedirect(route('classroom.show', $classroom));
 

@@ -1,4 +1,4 @@
-import { Button, Input, Label, Spinner } from '@heroui/react';
+import { Button, Input, Label, Modal, Spinner } from '@heroui/react';
 import { Form } from '@inertiajs/react';
 import type { Classroom, Teacher } from '@/components/classroom/table';
 import FormSelect, { optionsFromMap } from '@/components/form-select';
@@ -23,8 +23,13 @@ type Props = {
     teachers: Teacher[];
     shifts: Record<string, string>;
     statuses: Record<string, string>;
+    onSuccess: () => void;
+    onCancel: () => void;
 };
 
+/**
+ * Body and footer of the classroom modal; the form closes the modal once saved.
+ */
 export default function ClassroomForm({
     classroom: existing,
     courses,
@@ -32,29 +37,30 @@ export default function ClassroomForm({
     teachers,
     shifts,
     statuses,
+    onSuccess,
+    onCancel,
 }: Props) {
     const isEditing = Boolean(existing);
 
     return (
-        <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-            <h2 className="mb-4 text-base font-medium">
-                {isEditing ? 'Editar turma' : 'Nova turma'}
-            </h2>
-            <Form
-                action={
-                    existing ? classroom.update(existing.id) : classroom.store()
-                }
-                resetOnSuccess={!isEditing}
-                className="grid gap-4 sm:grid-cols-4 sm:items-end"
-            >
-                {({ processing, errors }) => (
-                    <>
+        <Form
+            action={
+                existing ? classroom.update(existing.id) : classroom.store()
+            }
+            onSuccess={onSuccess}
+            className="flex flex-col"
+        >
+            {({ processing, errors }) => (
+                <>
+                    <Modal.Body className="grid gap-4 sm:grid-cols-2 sm:items-start">
                         {!isEditing && (
-                            <div className="sm:col-span-2">
+                            <div className="grid min-w-0 sm:col-span-2">
                                 <FormSelect
                                     name="course_id"
                                     label="Curso"
                                     isRequired
+                                    variant="secondary"
+                                    fullWidth
                                     options={courses.map((course) => ({
                                         id: course.id,
                                         label: `${course.code} · ${course.name}`,
@@ -64,11 +70,13 @@ export default function ClassroomForm({
                             </div>
                         )}
 
-                        <div className="sm:col-span-2">
+                        <div className="grid min-w-0 sm:col-span-2">
                             <FormSelect
                                 name="academic_term_id"
                                 label="Período letivo"
                                 isRequired
+                                variant="secondary"
+                                fullWidth
                                 options={terms.map((term) => ({
                                     id: term.id,
                                     label: term.name,
@@ -78,9 +86,11 @@ export default function ClassroomForm({
                             />
                         </div>
 
-                        <div className="grid gap-2 sm:col-span-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="name">Nome</Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="name"
                                 name="name"
                                 placeholder="Turma A"
@@ -90,9 +100,11 @@ export default function ClassroomForm({
                             <InputError message={errors.name} />
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="code">Código</Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="code"
                                 name="code"
                                 placeholder="ES-3A"
@@ -102,11 +114,13 @@ export default function ClassroomForm({
                             <InputError message={errors.code} />
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="term_number">
                                 Semestre do curso
                             </Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="term_number"
                                 name="term_number"
                                 type="number"
@@ -123,6 +137,8 @@ export default function ClassroomForm({
                             name="shift"
                             label="Turno"
                             isRequired
+                            variant="secondary"
+                            fullWidth
                             options={optionsFromMap(shifts)}
                             defaultValue={existing?.shift}
                             error={errors.shift}
@@ -132,14 +148,18 @@ export default function ClassroomForm({
                             name="status"
                             label="Status"
                             isRequired
+                            variant="secondary"
+                            fullWidth
                             options={optionsFromMap(statuses)}
                             defaultValue={existing?.status ?? 'active'}
                             error={errors.status}
                         />
 
-                        <div className="grid gap-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="capacity">Vagas</Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="capacity"
                                 name="capacity"
                                 type="number"
@@ -154,6 +174,8 @@ export default function ClassroomForm({
                         <FormSelect
                             name="homeroom_teacher_id"
                             label="Professor regente"
+                            variant="secondary"
+                            fullWidth
                             options={teachers.map((teacher) => ({
                                 id: teacher.id,
                                 label: teacher.person.name,
@@ -162,9 +184,11 @@ export default function ClassroomForm({
                             error={errors.homeroom_teacher_id}
                         />
 
-                        <div className="grid gap-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="room">Sala</Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="room"
                                 name="room"
                                 placeholder="Sala 101"
@@ -172,17 +196,23 @@ export default function ClassroomForm({
                             />
                             <InputError message={errors.room} />
                         </div>
+                    </Modal.Body>
 
+                    <Modal.Footer>
                         <Button
-                            type="submit"
-                            className="sm:col-span-4 sm:w-fit"
+                            type="button"
+                            variant="secondary"
+                            onPress={onCancel}
                         >
+                            Cancelar
+                        </Button>
+                        <Button type="submit" isDisabled={processing}>
                             {processing && <Spinner />}
                             {isEditing ? 'Salvar alterações' : 'Criar turma'}
                         </Button>
-                    </>
-                )}
-            </Form>
-        </div>
+                    </Modal.Footer>
+                </>
+            )}
+        </Form>
     );
 }

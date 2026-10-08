@@ -1,5 +1,6 @@
-import { EmptyState, Table } from '@heroui/react';
+import { Button, EmptyState, Table } from '@heroui/react';
 import { Link } from '@inertiajs/react';
+import { Pencil } from 'lucide-react';
 import classroom from '@/routes/classroom';
 
 export type Teacher = {
@@ -30,12 +31,14 @@ type Props = {
     classrooms: Classroom[];
     shifts: Record<string, string>;
     statuses: Record<string, string>;
+    onEdit?: (classroom: Classroom) => void;
 };
 
 export default function ClassroomTable({
     classrooms,
     shifts,
     statuses,
+    onEdit,
 }: Props) {
     return (
         <Table>
@@ -49,6 +52,7 @@ export default function ClassroomTable({
                         <Table.Column>Status</Table.Column>
                         <Table.Column>Ocupação</Table.Column>
                         <Table.Column>Matérias</Table.Column>
+                        {onEdit ? <Table.Column>Ações</Table.Column> : null}
                     </Table.Header>
                     <Table.Body
                         items={classrooms}
@@ -87,6 +91,19 @@ export default function ClassroomTable({
                                 <Table.Cell>
                                     {item.classroom_subjects_count ?? 0}
                                 </Table.Cell>
+                                {onEdit ? (
+                                    <Table.Cell>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            aria-label={`Editar ${item.name}`}
+                                            onPress={() => onEdit(item)}
+                                        >
+                                            <Pencil className="size-4" />
+                                            Editar
+                                        </Button>
+                                    </Table.Cell>
+                                ) : null}
                             </Table.Row>
                         )}
                     </Table.Body>

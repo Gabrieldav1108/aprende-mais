@@ -1,4 +1,4 @@
-import { Button, Spinner } from '@heroui/react';
+import { Button, Modal, Spinner } from '@heroui/react';
 import { Form } from '@inertiajs/react';
 import type { Teacher } from '@/components/classroom/table';
 import FormSelect from '@/components/form-select';
@@ -15,27 +15,35 @@ type Props = {
     classroomId: number;
     courseSubjects: CourseSubject[];
     teachers: Teacher[];
+    onSuccess: () => void;
+    onCancel: () => void;
 };
 
+/**
+ * Body and footer of the offer-subject modal; the form closes the modal once saved.
+ */
 export default function ClassroomSubjectForm({
     classroomId,
     courseSubjects,
     teachers,
+    onSuccess,
+    onCancel,
 }: Props) {
     return (
-        <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-            <h2 className="mb-4 text-base font-medium">Ofertar matéria</h2>
-            <Form
-                action={classroom.subjects.store(classroomId)}
-                resetOnSuccess
-                className="grid gap-4 sm:grid-cols-3 sm:items-end"
-            >
-                {({ processing, errors }) => (
-                    <>
+        <Form
+            action={classroom.subjects.store(classroomId)}
+            onSuccess={onSuccess}
+            className="flex flex-col"
+        >
+            {({ processing, errors }) => (
+                <>
+                    <Modal.Body className="grid gap-4">
                         <FormSelect
                             name="subject_id"
                             label="Matéria do curso"
                             isRequired
+                            variant="secondary"
+                            fullWidth
                             options={courseSubjects.map((subject) => ({
                                 id: subject.id,
                                 label: `${subject.code} · ${subject.name} (${subject.workload_hours}h)`,
@@ -47,20 +55,31 @@ export default function ClassroomSubjectForm({
                             name="teacher_id"
                             label="Professor"
                             isRequired
+                            variant="secondary"
+                            fullWidth
                             options={teachers.map((teacher) => ({
                                 id: teacher.id,
                                 label: teacher.person.name,
                             }))}
                             error={errors.teacher_id}
                         />
+                    </Modal.Body>
 
-                        <Button type="submit" className="sm:w-fit">
+                    <Modal.Footer>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onPress={onCancel}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button type="submit" isDisabled={processing}>
                             {processing && <Spinner />}
                             Adicionar matéria
                         </Button>
-                    </>
-                )}
-            </Form>
-        </div>
+                    </Modal.Footer>
+                </>
+            )}
+        </Form>
     );
 }
