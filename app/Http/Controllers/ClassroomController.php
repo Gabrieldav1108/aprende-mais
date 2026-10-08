@@ -99,7 +99,7 @@ class ClassroomController extends Controller
                 ->whereIn('status', [TermStatus::Planned, TermStatus::Open])
                 ->orderByDesc('year')->orderByDesc('number')
                 ->get(['id', 'name']),
-            'teachers' => $this->teachers->allWithUser(),
+            'teachers' => $this->teachers->allWithPerson(),
             'shifts' => Shift::options(),
             'statuses' => ClassroomStatus::options(),
         ];

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -56,13 +57,19 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasOne(Person::class);
     }
 
-    public function teacher(): HasOne
+    /**
+     * @return HasOneThrough<Teacher, Person, $this>
+     */
+    public function teacher(): HasOneThrough
     {
-        return $this->hasOne(Teacher::class);
+        return $this->hasOneThrough(Teacher::class, Person::class);
     }
 
-    public function student(): HasOne
+    /**
+     * @return HasOneThrough<Student, Person, $this>
+     */
+    public function student(): HasOneThrough
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOneThrough(Student::class, Person::class);
     }
 }

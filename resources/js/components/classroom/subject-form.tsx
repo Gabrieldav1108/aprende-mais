@@ -49,7 +49,7 @@ export default function ClassroomSubjectForm({
                             isRequired
                             options={teachers.map((teacher) => ({
                                 id: teacher.id,
-                                label: teacher.user.name,
+                                label: teacher.person.name,
                             }))}
                             error={errors.teacher_id}
                         />

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Person;
 use App\Models\Teacher;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,10 +19,17 @@ class TeacherFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'school_id' => fn (array $attributes) => User::find($attributes['user_id'])?->school_id,
+            'person_id' => Person::factory(),
             'registration_number' => fake()->unique()->numerify('T#####'),
             'qualification' => fake()->jobTitle(),
         ];
+    }
+
+    /**
+     * Create the teacher, and its person, in the given school.
+     */
+    public function inSchool(int $schoolId): static
+    {
+        return $this->state(fn () => ['person_id' => Person::factory()->inSchool($schoolId)]);
     }
 }

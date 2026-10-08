@@ -16,4 +16,16 @@ trait SchoolScopedRules
             ->whereNull('deleted_at')
             ->where('school_id', $this->user()?->school_id ?? 0);
     }
+
+    /**
+     * Build an exists rule for a role table (students, teachers) limited to people of the authenticated user's school.
+     */
+    protected function existsRoleInSchool(string $table): Exists
+    {
+        $schoolId = $this->user()?->school_id ?? 0;
+
+        return Rule::exists($table, 'id')
+            ->whereNull('deleted_at')
+            ->whereIn('person_id', fn ($query) => $query->select('id')->from('people')->where('school_id', $schoolId)->whereNull('deleted_at'));
+    }
 }

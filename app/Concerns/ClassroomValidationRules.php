@@ -42,7 +42,7 @@ trait ClassroomValidationRules
             'shift' => ['required', Rule::enum(Shift::class)],
             'status' => ['required', Rule::enum(ClassroomStatus::class)],
             'capacity' => ['required', 'integer', 'min:'.$minimumCapacity, 'max:1000'],
-            'homeroom_teacher_id' => ['nullable', 'integer', $this->existsInSchool('teachers')],
+            'homeroom_teacher_id' => ['nullable', 'integer', $this->existsRoleInSchool('teachers')],
             'room' => ['nullable', 'string', 'max:255'],
         ];
     }

@@ -10,14 +10,15 @@ use Throwable;
 class TeacherRepository
 {
     /**
-     * List all teachers with their user.
+     * List all teachers with their person.
      *
      * @return Collection<int, Teacher>
      */
-    public function allWithUser(): Collection
+    public function
+    allWithPerson(): Collection
     {
         try {
-            return Teacher::with('user')->get();
+            return Teacher::with('person:id,name')->get();
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to list teachers.', previous: $e);
         }

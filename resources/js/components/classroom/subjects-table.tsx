@@ -54,7 +54,7 @@ export default function ClassroomSubjectsTable({
                                     {item.subject.workload_hours}h
                                 </Table.Cell>
                                 <Table.Cell>
-                                    {item.teacher.user.name}
+                                    {item.teacher.person.name}
                                 </Table.Cell>
                                 <Table.Cell>
                                     {canRemove && (

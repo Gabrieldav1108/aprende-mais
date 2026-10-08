@@ -156,7 +156,7 @@ export default function ClassroomForm({
                             label="Professor regente"
                             options={teachers.map((teacher) => ({
                                 id: teacher.id,
-                                label: teacher.user.name,
+                                label: teacher.person.name,
                             }))}
                             defaultValue={existing?.homeroom_teacher_id}
                             error={errors.homeroom_teacher_id}

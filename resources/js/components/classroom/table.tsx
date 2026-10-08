@@ -4,7 +4,7 @@ import classroom from '@/routes/classroom';
 
 export type Teacher = {
     id: number;
-    user: { name: string };
+    person: { name: string };
 };
 
 export type Classroom = {

@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,7 +37,10 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
-        $request->user()->save();
+        DB::transaction(function () use ($request): void {
+            $request->user()->save();
+            $request->user()->person?->update(['name' => $request->user()->name]);
+        });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 

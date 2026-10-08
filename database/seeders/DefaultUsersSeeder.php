@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Person;
 use App\Models\School;
 use App\Models\Student;
 use App\Models\Teacher;
@@ -23,33 +24,25 @@ class DefaultUsersSeeder extends Seeder
 
         $this->createUser($school, 'Gabriel (Admin)', 'gabriel.admin@aprendemais.com', 'admin');
 
-        $teacher = $this->createUser($school, 'Gabriel (Professor)', 'gabriel.professor@aprendemais.com', 'teacher');
-        Teacher::firstOrCreate(['user_id' => $teacher->id], [
-            'school_id' => $school->id,
+        $person = $this->createPerson($this->createUser($school, 'Gabriel (Professor)', 'gabriel.professor@aprendemais.com', 'teacher'));
+        Teacher::firstOrCreate(['person_id' => $person->id], [
             'registration_number' => 'T00001',
             'qualification' => 'Licenciatura',
         ]);
 
-        $student = $this->createUser($school, 'Gabriel (Aluno)', 'gabriel.aluno@aprendemais.com', 'student');
-        Student::firstOrCreate(['user_id' => $student->id], [
-            'school_id' => $school->id,
-            'enrollment_number' => 'A00001',
-        ]);
+        $person = $this->createPerson($this->createUser($school, 'Gabriel (Aluno)', 'gabriel.aluno@aprendemais.com', 'student'));
+        Student::firstOrCreate(['person_id' => $person->id], ['enrollment_number' => 'A00001']);
 
         $this->createUser($school, 'Arthur (Admin)', 'arthur.admin@aprendemais.com', 'admin');
 
-        $teacher = $this->createUser($school, 'Arthur (Professor)', 'arthur.professor@aprendemais.com', 'teacher');
-        Teacher::firstOrCreate(['user_id' => $teacher->id], [
-            'school_id' => $school->id,
+        $person = $this->createPerson($this->createUser($school, 'Arthur (Professor)', 'arthur.professor@aprendemais.com', 'teacher'));
+        Teacher::firstOrCreate(['person_id' => $person->id], [
             'registration_number' => 'T00002',
             'qualification' => 'Licenciatura',
         ]);
 
-        $student = $this->createUser($school, 'Arthur (Aluno)', 'arthur.aluno@aprendemais.com', 'student');
-        Student::firstOrCreate(['user_id' => $student->id], [
-            'school_id' => $school->id,
-            'enrollment_number' => 'A00002',
-        ]);
+        $person = $this->createPerson($this->createUser($school, 'Arthur (Aluno)', 'arthur.aluno@aprendemais.com', 'student'));
+        Student::firstOrCreate(['person_id' => $person->id], ['enrollment_number' => 'A00002']);
     }
 
     private function createUser(School $school, string $name, string $email, string $role): User
@@ -64,5 +57,13 @@ class DefaultUsersSeeder extends Seeder
         $user->syncRoles($role);
 
         return $user;
+    }
+
+    private function createPerson(User $user): Person
+    {
+        return Person::firstOrCreate(['user_id' => $user->id], [
+            'school_id' => $user->school_id,
+            'name' => $user->name,
+        ]);
     }
 }

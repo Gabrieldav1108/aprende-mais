@@ -23,7 +23,7 @@ class ClassroomRepository
     {
         try {
             return Classroom::query()
-                ->with(['course', 'academicTerm', 'homeroomTeacher.user'])
+                ->with(['course', 'academicTerm', 'homeroomTeacher.person'])
                 ->withCount(['classroomSubjects', 'classroomStudents'])
                 ->latest()
                 ->get();
@@ -55,7 +55,7 @@ class ClassroomRepository
     {
         try {
             return $classroom
-                ->load(['course', 'academicTerm', 'homeroomTeacher.user'])
+                ->load(['course', 'academicTerm', 'homeroomTeacher.person'])
                 ->loadCount('classroomStudents');
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to load classroom.', ['classroom_id' => $classroom->id], $e);
@@ -70,7 +70,7 @@ class ClassroomRepository
     public function subjectsFor(Classroom $classroom): Collection
     {
         try {
-            return $classroom->classroomSubjects()->with(['subject', 'teacher.user'])->get();
+            return $classroom->classroomSubjects()->with(['subject', 'teacher.person'])->get();
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to load classroom subjects.', ['classroom_id' => $classroom->id], $e);
         }
