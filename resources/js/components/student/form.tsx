@@ -1,14 +1,14 @@
 import { Button, Input, Label, Modal, Spinner } from '@heroui/react';
-import { Form } from '@inertiajs/react';
+import { Form, Link } from '@inertiajs/react';
 import FormSelect, { optionsFromMap } from '@/components/form-select';
 import InputError from '@/components/input-error';
-import MultiInput from '@/components/multi-input';
 import type { Student } from '@/components/student/table';
-import { formatCpfCnpj, formatPhone, formatZipCode } from '@/lib/format';
+import { user as userIndex } from '@/routes';
 import student from '@/routes/student';
 
 type Props = {
     student?: Student;
+    people: { id: number; name: string }[];
     courses: { id: number; name: string }[];
     statuses: Record<string, string>;
     onSuccess: () => void;
@@ -20,14 +20,14 @@ type Props = {
  */
 export default function StudentForm({
     student: existing,
+    people,
     courses,
     statuses,
     onSuccess,
     onCancel,
 }: Props) {
     const isEditing = Boolean(existing);
-    const person = existing?.person;
-    const address = person?.address;
+    const hasNoPeople = !isEditing && people.length === 0;
 
     return (
         <Form
@@ -37,70 +37,46 @@ export default function StudentForm({
         >
             {({ processing, errors }) => (
                 <>
-                    <Modal.Body className="grid gap-4 sm:grid-cols-4 sm:items-start">
+                    <Modal.Body className="grid gap-4 sm:grid-cols-2 sm:items-start">
                         <div className="grid min-w-0 gap-2 sm:col-span-2">
-                            <Label htmlFor="name">Nome</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="name"
-                                name="name"
-                                placeholder="Maria Souza"
-                                defaultValue={person?.name}
-                                required
-                            />
-                            <InputError message={errors.name} />
+                            {existing ? (
+                                <>
+                                    <Label>Pessoa</Label>
+                                    <p className="text-sm text-foreground">
+                                        {existing.person.name}
+                                        <span className="ml-2 text-muted-foreground">
+                                            {existing.person.user.email}
+                                        </span>
+                                    </p>
+                                </>
+                            ) : hasNoPeople ? (
+                                <p className="text-sm text-muted-foreground">
+                                    Nenhuma pessoa com o papel de aluno
+                                    disponível. Cadastre-a, ou marque o papel,
+                                    em{' '}
+                                    <Link
+                                        href={userIndex()}
+                                        className="font-medium text-foreground underline"
+                                    >
+                                        Usuários
+                                    </Link>
+                                    .
+                                </p>
+                            ) : (
+                                <FormSelect
+                                    name="person_id"
+                                    label="Pessoa"
+                                    isRequired
+                                    variant="secondary"
+                                    fullWidth
+                                    options={people.map((person) => ({
+                                        id: person.id,
+                                        label: person.name,
+                                    }))}
+                                    error={errors.person_id}
+                                />
+                            )}
                         </div>
-
-                        <div className="grid min-w-0 gap-2 sm:col-span-2">
-                            <Label htmlFor="email">E-mail de acesso</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="maria@exemplo.com"
-                                defaultValue={person?.user.email}
-                                required
-                            />
-                            <InputError message={errors.email} />
-                        </div>
-
-                        {!isEditing && (
-                            <>
-                                <div className="grid min-w-0 gap-2 sm:col-span-2">
-                                    <Label htmlFor="password">
-                                        Senha inicial
-                                    </Label>
-                                    <Input
-                                        variant="secondary"
-                                        fullWidth
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        autoComplete="new-password"
-                                        required
-                                    />
-                                    <InputError message={errors.password} />
-                                </div>
-
-                                <div className="grid min-w-0 gap-2 sm:col-span-2">
-                                    <Label htmlFor="password_confirmation">
-                                        Confirmar senha
-                                    </Label>
-                                    <Input
-                                        variant="secondary"
-                                        fullWidth
-                                        id="password_confirmation"
-                                        name="password_confirmation"
-                                        type="password"
-                                        autoComplete="new-password"
-                                        required
-                                    />
-                                </div>
-                            </>
-                        )}
 
                         <div className="grid min-w-0 gap-2">
                             <Label htmlFor="enrollment_number">Matrícula</Label>
@@ -116,32 +92,6 @@ export default function StudentForm({
                             <InputError message={errors.enrollment_number} />
                         </div>
 
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="cpf_cnpj">CPF / CNPJ</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="cpf_cnpj"
-                                name="cpf_cnpj"
-                                placeholder="000.000.000-00"
-                                defaultValue={formatCpfCnpj(person?.cpf_cnpj)}
-                            />
-                            <InputError message={errors.cpf_cnpj} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="birth_date">Nascimento</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="birth_date"
-                                name="birth_date"
-                                type="date"
-                                defaultValue={person?.birth_date ?? ''}
-                            />
-                            <InputError message={errors.birth_date} />
-                        </div>
-
                         <FormSelect
                             name="status"
                             label="Status"
@@ -153,142 +103,18 @@ export default function StudentForm({
                             error={errors.status}
                         />
 
-                        <FormSelect
-                            name="course_id"
-                            label="Curso"
-                            variant="secondary"
-                            fullWidth
-                            options={courses.map((item) => ({
-                                id: item.id,
-                                label: item.name,
-                            }))}
-                            defaultValue={existing?.course_id}
-                            error={errors.course_id}
-                        />
-
-                        <h3 className="text-sm font-medium text-foreground sm:col-span-4">
-                            Endereço
-                        </h3>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_zip_code">CEP</Label>
-                            <Input
+                        <div className="grid min-w-0 sm:col-span-2">
+                            <FormSelect
+                                name="course_id"
+                                label="Curso"
                                 variant="secondary"
                                 fullWidth
-                                id="address_zip_code"
-                                name="address[zip_code]"
-                                placeholder="00000-000"
-                                defaultValue={formatZipCode(address?.zip_code)}
-                            />
-                            <InputError message={errors['address.zip_code']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2 sm:col-span-2">
-                            <Label htmlFor="address_street">Rua</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_street"
-                                name="address[street]"
-                                defaultValue={address?.street ?? ''}
-                            />
-                            <InputError message={errors['address.street']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_number">Número</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_number"
-                                name="address[number]"
-                                defaultValue={address?.number ?? ''}
-                            />
-                            <InputError message={errors['address.number']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_complement">
-                                Complemento
-                            </Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_complement"
-                                name="address[complement]"
-                                defaultValue={address?.complement ?? ''}
-                            />
-                            <InputError
-                                message={errors['address.complement']}
-                            />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_neighborhood">Bairro</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_neighborhood"
-                                name="address[neighborhood]"
-                                defaultValue={address?.neighborhood ?? ''}
-                            />
-                            <InputError
-                                message={errors['address.neighborhood']}
-                            />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_city">Cidade</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_city"
-                                name="address[city]"
-                                defaultValue={address?.city ?? ''}
-                            />
-                            <InputError message={errors['address.city']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_state">UF</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_state"
-                                name="address[state]"
-                                maxLength={2}
-                                placeholder="SP"
-                                defaultValue={address?.state ?? ''}
-                            />
-                            <InputError message={errors['address.state']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-4 sm:col-span-2">
-                            <MultiInput
-                                name="phones"
-                                label="Telefones"
-                                variant="secondary"
-                                addLabel="Adicionar telefone"
-                                placeholder="(11) 99999-0000"
-                                initialValues={person?.phones?.map((phone) =>
-                                    formatPhone(phone.number),
-                                )}
-                                errors={errors}
-                            />
-                        </div>
-
-                        <div className="grid min-w-0 gap-4 sm:col-span-2">
-                            <MultiInput
-                                name="emails"
-                                label="E-mails de contato"
-                                variant="secondary"
-                                addLabel="Adicionar e-mail"
-                                type="email"
-                                placeholder="contato@exemplo.com"
-                                initialValues={person?.emails?.map(
-                                    (email) => email.address,
-                                )}
-                                errors={errors}
+                                options={courses.map((item) => ({
+                                    id: item.id,
+                                    label: item.name,
+                                }))}
+                                defaultValue={existing?.course_id}
+                                error={errors.course_id}
                             />
                         </div>
                     </Modal.Body>
@@ -301,7 +127,10 @@ export default function StudentForm({
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" isDisabled={processing}>
+                        <Button
+                            type="submit"
+                            isDisabled={processing || hasNoPeople}
+                        >
                             {processing && <Spinner />}
                             {isEditing
                                 ? 'Salvar alterações'

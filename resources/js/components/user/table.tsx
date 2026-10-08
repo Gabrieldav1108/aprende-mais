@@ -27,18 +27,13 @@ export type Person = {
     emails?: { id: number; address: string }[];
 };
 
-const roleLabels: Record<string, string> = {
-    admin: 'Administrador',
-    teacher: 'Professor',
-    student: 'Aluno',
-};
-
 type Props = {
     people: Person[];
+    roles: Record<string, string>;
     onEdit?: (person: Person) => void;
 };
 
-export default function UserTable({ people, onEdit }: Props) {
+export default function UserTable({ people, roles, onEdit }: Props) {
     return (
         <Table>
             <Table.ScrollContainer>
@@ -78,7 +73,7 @@ export default function UserTable({ people, onEdit }: Props) {
                                         ? item.user.roles
                                               .map(
                                                   (role) =>
-                                                      roleLabels[role.name] ??
+                                                      roles[role.name] ??
                                                       role.name,
                                               )
                                               .join(', ')

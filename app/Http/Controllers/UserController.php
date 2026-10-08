@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -27,6 +28,7 @@ class UserController extends Controller
 
         return Inertia::render('user/index', [
             'people' => $this->people->all(),
+            'roles' => UserRole::options(),
         ]);
     }
 

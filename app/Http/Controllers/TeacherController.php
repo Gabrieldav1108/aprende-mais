@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Models\Teacher;
+use App\Repositories\PersonRepository;
 use App\Repositories\TeacherRepository;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -13,7 +15,10 @@ use Inertia\Response;
 
 class TeacherController extends Controller
 {
-    public function __construct(private readonly TeacherRepository $teachers) {}
+    public function __construct(
+        private readonly TeacherRepository $teachers,
+        private readonly PersonRepository $people,
+    ) {}
 
     /**
      * Display a listing of the teachers.
@@ -24,6 +29,7 @@ class TeacherController extends Controller
 
         return Inertia::render('teacher/index', [
             'teachers' => $this->teachers->all(),
+            'people' => $this->people->availableFor(UserRole::Teacher->value),
         ]);
     }
 

@@ -10,9 +10,10 @@ import { dashboard, user as userIndex } from '@/routes';
 
 type Props = {
     people: Person[];
+    roles: Record<string, string>;
 };
 
-export default function UserIndex({ people }: Props) {
+export default function UserIndex({ people, roles }: Props) {
     const canManageUsers = useCan('users.manage');
     const createState = useOverlayState();
     const editState = useOverlayState();
@@ -37,16 +38,18 @@ export default function UserIndex({ people }: Props) {
                 )}
                 <UserTable
                     people={people}
+                    roles={roles}
                     onEdit={canManageUsers ? edit : undefined}
                 />
             </div>
 
-            {canManageUsers && <UserModal state={createState} />}
+            {canManageUsers && <UserModal state={createState} roles={roles} />}
             {canManageUsers && editing && (
                 <UserModal
                     key={editing.id}
                     state={editState}
                     person={editing}
+                    roles={roles}
                 />
             )}
         </>

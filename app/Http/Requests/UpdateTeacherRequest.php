@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Concerns\TeacherValidationRules;
-use App\Models\Teacher;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -19,11 +18,6 @@ class UpdateTeacherRequest extends FormRequest
         return $this->user()->can('update', $this->route('teacher'));
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->merge($this->normalizedPersonInput());
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -31,12 +25,6 @@ class UpdateTeacherRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var Teacher $teacher */
-        $teacher = $this->route('teacher');
-
-        return [
-            ...$this->profileRules($teacher->person->user_id),
-            ...$this->teacherRules($teacher),
-        ];
+        return $this->teacherRules($this->route('teacher'));
     }
 }

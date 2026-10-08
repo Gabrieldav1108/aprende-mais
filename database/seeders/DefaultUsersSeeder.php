@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Person;
 use App\Models\School;
 use App\Models\Student;
@@ -22,26 +23,26 @@ class DefaultUsersSeeder extends Seeder
 
         $school = School::firstOrCreate(['code' => 'DEFAULT'], ['name' => 'Aprende Mais']);
 
-        $this->createUser($school, 'Gabriel (Admin)', 'gabriel.admin@aprendemais.com', 'admin');
+        $this->createUser($school, 'Gabriel (Admin)', 'gabriel.admin@aprendemais.com', UserRole::Admin->value);
 
-        $person = $this->createPerson($this->createUser($school, 'Gabriel (Professor)', 'gabriel.professor@aprendemais.com', 'teacher'));
+        $person = $this->createPerson($this->createUser($school, 'Gabriel (Professor)', 'gabriel.professor@aprendemais.com', UserRole::Teacher->value));
         Teacher::firstOrCreate(['person_id' => $person->id], [
             'registration_number' => 'T00001',
             'qualification' => 'Licenciatura',
         ]);
 
-        $person = $this->createPerson($this->createUser($school, 'Gabriel (Aluno)', 'gabriel.aluno@aprendemais.com', 'student'));
+        $person = $this->createPerson($this->createUser($school, 'Gabriel (Aluno)', 'gabriel.aluno@aprendemais.com', UserRole::Student->value));
         Student::firstOrCreate(['person_id' => $person->id], ['enrollment_number' => 'A00001']);
 
-        $this->createUser($school, 'Arthur (Admin)', 'arthur.admin@aprendemais.com', 'admin');
+        $this->createUser($school, 'Arthur (Admin)', 'arthur.admin@aprendemais.com', UserRole::Admin->value);
 
-        $person = $this->createPerson($this->createUser($school, 'Arthur (Professor)', 'arthur.professor@aprendemais.com', 'teacher'));
+        $person = $this->createPerson($this->createUser($school, 'Arthur (Professor)', 'arthur.professor@aprendemais.com', UserRole::Teacher->value));
         Teacher::firstOrCreate(['person_id' => $person->id], [
             'registration_number' => 'T00002',
             'qualification' => 'Licenciatura',
         ]);
 
-        $person = $this->createPerson($this->createUser($school, 'Arthur (Aluno)', 'arthur.aluno@aprendemais.com', 'student'));
+        $person = $this->createPerson($this->createUser($school, 'Arthur (Aluno)', 'arthur.aluno@aprendemais.com', UserRole::Student->value));
         Student::firstOrCreate(['person_id' => $person->id], ['enrollment_number' => 'A00002']);
     }
 

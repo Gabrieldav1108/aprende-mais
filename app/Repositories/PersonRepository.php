@@ -31,14 +31,32 @@ class PersonRepository
     }
 
     /**
-     * Create a user, optionally with a role, together with its person, address, phones and emails.
+     * List the people of the school whose user has the given role (student or teacher) and that are not linked to it yet.
+     *
+     * @return Collection<int, Person>
+     */
+    public function availableFor(string $role): Collection
+    {
+        try {
+            return Person::query()
+                ->whereHas('user', fn ($query) => $query->role($role))
+                ->whereDoesntHave($role)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        } catch (Throwable $e) {
+            throw new RepositoryException('Failed to list people available for role.', ['role' => $role], $e);
+        }
+    }
+
+    /**
+     * Create a user with its roles together with its person, address, phones and emails.
      *
      * @param  array<string, mixed>  $data
      */
-    public function createWithUser(array $data, ?string $role = null): Person
+    public function createWithUser(array $data): Person
     {
         try {
-            return DB::transaction(function () use ($data, $role): Person {
+            return DB::transaction(function () use ($data): Person {
                 $user = User::query()->create([
                     'name' => $data['name'],
                     'email' => $data['email'],
@@ -46,10 +64,7 @@ class PersonRepository
                     'school_id' => auth()->user()->school_id,
                 ]);
                 $user->forceFill(['email_verified_at' => now()])->save();
-
-                if ($role !== null) {
-                    $user->assignRole($role);
-                }
+                $user->syncRoles($data['roles'] ?? []);
 
                 $person = Person::query()->create([
                     'user_id' => $user->id,
@@ -70,7 +85,7 @@ class PersonRepository
     }
 
     /**
-     * Update a person, the name and e-mail of their user, and their address, phones and emails.
+     * Update a person, the name, e-mail and roles of their user, and their address, phones and emails.
      *
      * @param  array<string, mixed>  $data
      */
@@ -79,6 +94,7 @@ class PersonRepository
         try {
             return DB::transaction(function () use ($person, $data): Person {
                 $person->user->update(['name' => $data['name'], 'email' => $data['email']]);
+                $person->user->syncRoles($data['roles'] ?? []);
                 $person->update([
                     'name' => $data['name'],
                     'cpf_cnpj' => $data['cpf_cnpj'] ?? null,

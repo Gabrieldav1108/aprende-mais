@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -54,7 +55,7 @@ class UserFactory extends Factory
      */
     public function admin(): static
     {
-        return $this->withRole('admin');
+        return $this->withRole(UserRole::Admin->value);
     }
 
     /**

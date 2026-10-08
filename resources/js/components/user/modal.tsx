@@ -6,12 +6,13 @@ import type { Person } from '@/components/user/table';
 type Props = {
     state: ReturnType<typeof useOverlayState>;
     person?: Person;
+    roles: Record<string, string>;
 };
 
 /**
  * Modal used both to register a new user and to edit an existing one.
  */
-export default function UserModal({ state, person }: Props) {
+export default function UserModal({ state, person, roles }: Props) {
     return (
         <Modal state={state}>
             <Modal.Backdrop>
@@ -25,6 +26,7 @@ export default function UserModal({ state, person }: Props) {
                         </Modal.Header>
                         <UserForm
                             person={person}
+                            roles={roles}
                             onSuccess={state.close}
                             onCancel={state.close}
                         />

@@ -6,6 +6,7 @@ import type { Student } from '@/components/student/table';
 type Props = {
     state: ReturnType<typeof useOverlayState>;
     student?: Student;
+    people: { id: number; name: string }[];
     courses: { id: number; name: string }[];
     statuses: Record<string, string>;
 };
@@ -16,14 +17,15 @@ type Props = {
 export default function StudentModal({
     state,
     student,
+    people,
     courses,
     statuses,
 }: Props) {
     return (
         <Modal state={state}>
             <Modal.Backdrop>
-                <Modal.Container size="lg" scroll="outside">
-                    <Modal.Dialog className="sm:max-w-3xl">
+                <Modal.Container size="md" scroll="outside">
+                    <Modal.Dialog>
                         <Modal.CloseTrigger />
                         <Modal.Header>
                             <Modal.Heading>
@@ -32,6 +34,7 @@ export default function StudentModal({
                         </Modal.Header>
                         <StudentForm
                             student={student}
+                            people={people}
                             courses={courses}
                             statuses={statuses}
                             onSuccess={state.close}

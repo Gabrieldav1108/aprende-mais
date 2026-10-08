@@ -1,16 +1,6 @@
 import { Button, EmptyState, Table } from '@heroui/react';
 import { Pencil } from 'lucide-react';
 
-export type TeacherAddress = {
-    zip_code: string | null;
-    street: string | null;
-    neighborhood: string | null;
-    city: string | null;
-    state: string | null;
-    number: string | null;
-    complement: string | null;
-};
-
 export type Teacher = {
     id: number;
     registration_number: string;
@@ -18,12 +8,7 @@ export type Teacher = {
     person: {
         id: number;
         name: string;
-        cpf_cnpj: string | null;
-        birth_date: string | null;
         user: { id: number; email: string };
-        address?: TeacherAddress | null;
-        phones?: { id: number; number: string }[];
-        emails?: { id: number; address: string }[];
     };
 };
 

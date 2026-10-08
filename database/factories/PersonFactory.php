@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Person;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<Person>
@@ -25,6 +26,18 @@ class PersonFactory extends Factory
             'cpf_cnpj' => fake()->unique()->numerify('###########'),
             'birth_date' => fake()->date(max: '-17 years'),
         ];
+    }
+
+    /**
+     * Give the person's user the given role after creation.
+     */
+    public function withRole(string $role): static
+    {
+        return $this->afterCreating(function (Person $person) use ($role): void {
+            Role::findOrCreate($role);
+
+            $person->user->assignRole($role);
+        });
     }
 
     /**

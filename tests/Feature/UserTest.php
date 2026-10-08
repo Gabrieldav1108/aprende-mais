@@ -5,6 +5,8 @@ use App\Models\Email;
 use App\Models\Person;
 use App\Models\Phone;
 use App\Models\School;
+use App\Models\Student;
+use App\Models\Teacher;
 use App\Models\User;
 use App\Repositories\PersonRepository;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -32,6 +34,7 @@ function userPayload(array $overrides = []): array
         ],
         'phones' => ['(11) 99999-0000', '1133334444'],
         'emails' => ['contato@example.com'],
+        'roles' => ['student'],
         ...$overrides,
     ];
 }
@@ -61,7 +64,7 @@ test('admins can list the people of their school with their access data', functi
             ->etc()));
 });
 
-test('a user is registered together with the person, address, phones and emails', function () {
+test('a user is registered with roles together with the person, address, phones and emails', function () {
     $admin = userAdmin();
 
     $this->actingAs($admin)
@@ -72,7 +75,7 @@ test('a user is registered together with the person, address, phones and emails'
     $person = Person::with(['address', 'phones', 'emails'])->where('user_id', $user->id)->sole();
 
     expect($user->school_id)->toBe($admin->school_id)
-        ->and($user->roles)->toHaveCount(0)
+        ->and($user->getRoleNames()->all())->toBe(['student'])
         ->and($user->email_verified_at)->not->toBeNull()
         ->and($user->name)->toBe('Ana Prado')
         ->and($person->name)->toBe('Ana Prado')
@@ -192,4 +195,62 @@ test('a friendly error is shown when registering a user fails', function () {
         ->assertRedirect(route('user'));
 
     $this->assertDatabaseMissing('users', ['email' => 'ana@example.com']);
+});
+
+test('a user can be registered with several roles or none', function () {
+    $admin = userAdmin();
+
+    $this->actingAs($admin)
+        ->post(route('user.store'), userPayload(['roles' => ['teacher', 'student']]))
+        ->assertRedirect(route('user'));
+
+    $this->post(route('user.store'), userPayload(['email' => 'sem-papel@example.com', 'cpf_cnpj' => null, 'roles' => []]))
+        ->assertRedirect(route('user'));
+
+    expect(User::where('email', 'ana@example.com')->sole()->hasAllRoles(['teacher', 'student']))->toBeTrue()
+        ->and(User::where('email', 'sem-papel@example.com')->sole()->roles)->toHaveCount(0);
+});
+
+test('an unknown role is rejected', function () {
+    $this->actingAs(userAdmin())
+        ->post(route('user.store'), userPayload(['roles' => ['superuser']]))
+        ->assertSessionHasErrors('roles.0');
+});
+
+test('the roles of a user can be changed', function () {
+    $admin = userAdmin();
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('student')->create();
+
+    $this->actingAs($admin)
+        ->put(route('user.update', $person), userPayload(['email' => $person->user->email, 'roles' => ['teacher']]))
+        ->assertRedirect(route('user'));
+
+    expect($person->user->fresh()->getRoleNames()->all())->toBe(['teacher']);
+});
+
+test('a role in use by a student or teacher record cannot be removed', function () {
+    $admin = userAdmin();
+    $student = Student::factory()->inSchool($admin->school_id)->create();
+    $teacher = Teacher::factory()->inSchool($admin->school_id)->create();
+
+    $this->actingAs($admin)
+        ->put(route('user.update', $student->person), userPayload(['email' => $student->person->user->email, 'roles' => []]))
+        ->assertSessionHasErrors('roles');
+
+    $this->put(route('user.update', $teacher->person), userPayload(['email' => $teacher->person->user->email, 'roles' => ['student']]))
+        ->assertSessionHasErrors('roles');
+
+    expect($student->person->user->fresh()->hasRole('student'))->toBeTrue()
+        ->and($teacher->person->user->fresh()->hasRole('teacher'))->toBeTrue();
+});
+
+test('an admin cannot remove their own admin role', function () {
+    $admin = userAdmin();
+    $person = Person::factory()->create(['user_id' => $admin->id, 'school_id' => $admin->school_id]);
+
+    $this->actingAs($admin)
+        ->put(route('user.update', $person), userPayload(['email' => $admin->email, 'roles' => ['teacher']]))
+        ->assertSessionHasErrors('roles');
+
+    expect($admin->fresh()->hasRole('admin'))->toBeTrue();
 });

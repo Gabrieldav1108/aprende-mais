@@ -6,17 +6,18 @@ import type { Teacher } from '@/components/teacher/table';
 type Props = {
     state: ReturnType<typeof useOverlayState>;
     teacher?: Teacher;
+    people: { id: number; name: string }[];
 };
 
 /**
  * Modal used both to register a new teacher and to edit an existing one.
  */
-export default function TeacherModal({ state, teacher }: Props) {
+export default function TeacherModal({ state, teacher, people }: Props) {
     return (
         <Modal state={state}>
             <Modal.Backdrop>
-                <Modal.Container size="lg" scroll="outside">
-                    <Modal.Dialog className="sm:max-w-3xl">
+                <Modal.Container size="md" scroll="outside">
+                    <Modal.Dialog>
                         <Modal.CloseTrigger />
                         <Modal.Header>
                             <Modal.Heading>
@@ -27,6 +28,7 @@ export default function TeacherModal({ state, teacher }: Props) {
                         </Modal.Header>
                         <TeacherForm
                             teacher={teacher}
+                            people={people}
                             onSuccess={state.close}
                             onCancel={state.close}
                         />

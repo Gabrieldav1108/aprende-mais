@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'password' => 'password',
             'email_verified_at' => now(),
-        ])->syncRoles('student');
+        ])->syncRoles(UserRole::Student->value);
 
         if (! app()->isProduction()) {
             $this->call(DefaultUsersSeeder::class);

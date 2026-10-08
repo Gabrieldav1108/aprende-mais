@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StudentStatus;
+use App\Enums\UserRole;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
 use App\Repositories\CourseRepository;
+use App\Repositories\PersonRepository;
 use App\Repositories\StudentRepository;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -18,6 +20,7 @@ class StudentController extends Controller
     public function __construct(
         private readonly StudentRepository $students,
         private readonly CourseRepository $courses,
+        private readonly PersonRepository $people,
     ) {}
 
     /**
@@ -29,6 +32,7 @@ class StudentController extends Controller
 
         return Inertia::render('student/index', [
             'students' => $this->students->all(),
+            'people' => $this->people->availableFor(UserRole::Student->value),
             'courses' => $this->courses->all()->map->only(['id', 'name']),
             'statuses' => StudentStatus::options(),
         ]);

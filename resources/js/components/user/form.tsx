@@ -1,4 +1,12 @@
-import { Button, Input, Label, Modal, Spinner } from '@heroui/react';
+import {
+    Button,
+    Checkbox,
+    CheckboxGroup,
+    Input,
+    Label,
+    Modal,
+    Spinner,
+} from '@heroui/react';
 import { Form } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import MultiInput from '@/components/multi-input';
@@ -8,6 +16,7 @@ import user from '@/routes/user';
 
 type Props = {
     person?: Person;
+    roles: Record<string, string>;
     onSuccess: () => void;
     onCancel: () => void;
 };
@@ -17,6 +26,7 @@ type Props = {
  */
 export default function UserForm({
     person: existing,
+    roles,
     onSuccess,
     onCancel,
 }: Props) {
@@ -96,6 +106,36 @@ export default function UserForm({
                                 </div>
                             </>
                         )}
+
+                        <div className="grid min-w-0 gap-2 sm:col-span-4">
+                            <CheckboxGroup
+                                name="roles[]"
+                                variant="secondary"
+                                defaultValue={
+                                    person?.user.roles.map(
+                                        (role) => role.name,
+                                    ) ?? []
+                                }
+                                className="grid gap-2"
+                            >
+                                <Label>Papéis</Label>
+                                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                                    {Object.entries(roles).map(
+                                        ([value, label]) => (
+                                            <Checkbox key={value} value={value}>
+                                                <Checkbox.Control>
+                                                    <Checkbox.Indicator />
+                                                </Checkbox.Control>
+                                                <Checkbox.Content>
+                                                    <Label>{label}</Label>
+                                                </Checkbox.Content>
+                                            </Checkbox>
+                                        ),
+                                    )}
+                                </div>
+                            </CheckboxGroup>
+                            <InputError message={errors.roles} />
+                        </div>
 
                         <div className="grid min-w-0 gap-2">
                             <Label htmlFor="cpf_cnpj">CPF / CNPJ</Label>

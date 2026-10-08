@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Concerns\PasswordValidationRules;
 use App\Concerns\StudentValidationRules;
 use App\Models\Student;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -10,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreStudentRequest extends FormRequest
 {
-    use PasswordValidationRules, StudentValidationRules;
+    use StudentValidationRules;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -18,11 +17,6 @@ class StoreStudentRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()->can('create', Student::class);
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge($this->normalizedPersonInput());
     }
 
     /**
@@ -33,8 +27,7 @@ class StoreStudentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            ...$this->profileRules(),
-            'password' => $this->passwordRules(),
+            'person_id' => $this->studentPersonRules(),
             ...$this->studentRules(),
         ];
     }

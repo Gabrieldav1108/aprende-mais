@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
@@ -34,11 +35,6 @@ class RolesAndPermissionsSeeder extends Seeder
     ];
 
     /**
-     * @var list<string>
-     */
-    public const ROLES = ['admin', 'teacher', 'student'];
-
-    /**
      * Seed the roles and permissions, and optionally bootstrap an admin user.
      */
     public function run(): void
@@ -49,8 +45,8 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::findOrCreate($permission);
         }
 
-        foreach (self::ROLES as $role) {
-            Role::findOrCreate($role);
+        foreach (UserRole::cases() as $role) {
+            Role::findOrCreate($role->value);
         }
 
         $this->bootstrapAdmin();
@@ -80,6 +76,6 @@ class RolesAndPermissionsSeeder extends Seeder
             $admin->forceFill(['email_verified_at' => now()])->save();
         }
 
-        $admin->assignRole('admin');
+        $admin->assignRole(UserRole::Admin->value);
     }
 }

@@ -10,9 +10,10 @@ import { dashboard, teacher as teacherIndex } from '@/routes';
 
 type Props = {
     teachers: Teacher[];
+    people: { id: number; name: string }[];
 };
 
-export default function TeacherIndex({ teachers }: Props) {
+export default function TeacherIndex({ teachers, people }: Props) {
     const canCreateTeachers = useCan('teachers.create');
     const canUpdateTeachers = useCan('teachers.update');
     const createState = useOverlayState();
@@ -42,12 +43,15 @@ export default function TeacherIndex({ teachers }: Props) {
                 />
             </div>
 
-            {canCreateTeachers && <TeacherModal state={createState} />}
+            {canCreateTeachers && (
+                <TeacherModal state={createState} people={people} />
+            )}
             {canUpdateTeachers && editing && (
                 <TeacherModal
                     key={editing.id}
                     state={editState}
                     teacher={editing}
+                    people={people}
                 />
             )}
         </>

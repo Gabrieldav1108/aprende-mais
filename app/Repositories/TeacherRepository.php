@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Exceptions\RepositoryException;
+use App\Models\Person;
 use App\Models\Teacher;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -10,8 +11,6 @@ use Throwable;
 
 class TeacherRepository
 {
-    public function __construct(private readonly PersonRepository $people) {}
-
     /**
      * List all teachers with their person.
      *
@@ -27,7 +26,7 @@ class TeacherRepository
     }
 
     /**
-     * List the teachers of the school with their person data, contacts and login e-mail.
+     * List the teachers of the school with their person and login e-mail.
      *
      * @return Collection<int, Teacher>
      */
@@ -35,7 +34,7 @@ class TeacherRepository
     {
         try {
             return Teacher::query()
-                ->with(['person.user:id,email', 'person.address', 'person.phones', 'person.emails'])
+                ->with(['person.user:id,email'])
                 ->get()
                 ->sortBy('person.name', SORT_NATURAL | SORT_FLAG_CASE)
                 ->values();
@@ -45,7 +44,7 @@ class TeacherRepository
     }
 
     /**
-     * Register a teacher together with their user account and person data.
+     * Make an existing person with the teacher role a teacher.
      *
      * @param  array<string, mixed>  $data
      */
@@ -53,7 +52,7 @@ class TeacherRepository
     {
         try {
             return DB::transaction(function () use ($data): Teacher {
-                $person = $this->people->createWithUser($data, 'teacher');
+                $person = Person::query()->findOrFail($data['person_id']);
 
                 return Teacher::query()->create([
                     'person_id' => $person->id,
@@ -62,28 +61,24 @@ class TeacherRepository
                 ]);
             });
         } catch (Throwable $e) {
-            throw new RepositoryException('Failed to create teacher.', ['email' => $data['email'] ?? null], $e);
+            throw new RepositoryException('Failed to create teacher.', ['person_id' => $data['person_id'] ?? null], $e);
         }
     }
 
     /**
-     * Update a teacher together with their user account and person data.
+     * Update the teacher data.
      *
      * @param  array<string, mixed>  $data
      */
     public function update(Teacher $teacher, array $data): Teacher
     {
         try {
-            return DB::transaction(function () use ($teacher, $data): Teacher {
-                $this->people->update($teacher->person, $data);
+            $teacher->update([
+                'registration_number' => $data['registration_number'],
+                'qualification' => $data['qualification'] ?? null,
+            ]);
 
-                $teacher->update([
-                    'registration_number' => $data['registration_number'],
-                    'qualification' => $data['qualification'] ?? null,
-                ]);
-
-                return $teacher;
-            });
+            return $teacher;
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to update teacher.', ['teacher_id' => $teacher->id], $e);
         }

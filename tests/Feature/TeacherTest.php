@@ -1,10 +1,9 @@
 <?php
 
 use App\Exceptions\RepositoryException;
-use App\Models\Email;
 use App\Models\Person;
-use App\Models\Phone;
 use App\Models\School;
+use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Repositories\TeacherRepository;
@@ -21,18 +20,6 @@ beforeEach(function () {
 function teacherPayload(array $overrides = []): array
 {
     return [
-        'name' => 'Carlos Lima',
-        'email' => 'carlos@example.com',
-        'password' => 'password-123',
-        'password_confirmation' => 'password-123',
-        'cpf_cnpj' => '987.654.321-00',
-        'birth_date' => '1980-03-10',
-        'address' => [
-            'zip_code' => '01310-100', 'street' => 'Avenida Paulista', 'neighborhood' => 'Bela Vista',
-            'city' => 'São Paulo', 'state' => 'sp', 'number' => '1000', 'complement' => 'Sala 5',
-        ],
-        'phones' => ['(11) 98888-0000'],
-        'emails' => ['carlos.contato@example.com'],
         'registration_number' => 'T1001',
         'qualification' => 'Doutorado em Matemática',
         ...$overrides,
@@ -48,102 +35,135 @@ test('guests are redirected to the login page', function () {
     $this->get(route('teacher'))->assertRedirect(route('login'));
 });
 
-test('admins can list the teachers of their school with the data needed to edit them', function () {
+test('admins can list the teachers of their school and the people with the teacher role available to become one', function () {
     $admin = teacherAdmin();
     $teacher = Teacher::factory()->inSchool($admin->school_id)->create();
+    $available = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
+    Person::factory()->inSchool($admin->school_id)->withRole('student')->create();
+    Person::factory()->inSchool($admin->school_id)->create();
+    Person::factory()->inSchool(School::factory()->create()->id)->withRole('teacher')->create();
 
     $this->actingAs($admin)->get(route('teacher'))->assertInertia(fn ($page) => $page
         ->component('teacher/index')
-        ->has('teachers', 1, fn ($row) => $row->where('id', $teacher->id)->has('person.phones')->has('person.emails')->etc()));
+        ->has('teachers', 1, fn ($row) => $row->where('id', $teacher->id)->has('person.user.email')->etc())
+        ->has('people', 1, fn ($row) => $row->where('id', $available->id)->where('name', $available->name)));
 });
 
-test('a teacher is registered with user, person, address, phones and emails', function () {
+test('a person with the teacher role becomes a teacher', function () {
     $admin = teacherAdmin();
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
 
     $this->actingAs($admin)
-        ->post(route('teacher.store'), teacherPayload())
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $person->id]))
         ->assertRedirect(route('teacher'));
 
-    $user = User::where('email', 'carlos@example.com')->sole();
-    $person = Person::with(['address', 'phones', 'emails'])->where('user_id', $user->id)->sole();
-
-    expect($user->school_id)->toBe($admin->school_id)
-        ->and($user->hasRole('teacher'))->toBeTrue()
-        ->and($user->email_verified_at)->not->toBeNull()
-        ->and($person->name)->toBe('Carlos Lima')
-        ->and($person->school_id)->toBe($admin->school_id)
-        ->and($person->cpf_cnpj)->toBe('98765432100')
-        ->and($person->address)->toMatchArray(['zip_code' => '01310100', 'state' => 'SP', 'number' => '1000'])
-        ->and($person->phones->pluck('number')->all())->toBe(['11988880000'])
-        ->and($person->emails->pluck('address')->all())->toBe(['carlos.contato@example.com'])
-        ->and($person->teacher)->toMatchArray(['registration_number' => 'T1001', 'qualification' => 'Doutorado em Matemática']);
+    expect($person->teacher)->toMatchArray(['registration_number' => 'T1001', 'qualification' => 'Doutorado em Matemática']);
 });
 
-test('a teacher can be registered without address, phones, emails and qualification', function () {
-    $this->actingAs(teacherAdmin())
-        ->post(route('teacher.store'), teacherPayload(['address' => [], 'phones' => [], 'emails' => [], 'qualification' => null]))
+test('a person without the teacher role cannot become a teacher', function () {
+    $admin = teacherAdmin();
+    $student = Person::factory()->inSchool($admin->school_id)->withRole('student')->create();
+    $noRole = Person::factory()->inSchool($admin->school_id)->create();
+
+    $this->actingAs($admin)
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $student->id]))
+        ->assertSessionHasErrors('person_id');
+
+    $this->post(route('teacher.store'), teacherPayload(['person_id' => $noRole->id]))
+        ->assertSessionHasErrors('person_id');
+
+    expect(Teacher::count())->toBe(0);
+});
+
+test('linking a person does not change their roles', function () {
+    $admin = teacherAdmin();
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
+
+    $this->actingAs($admin)->post(route('teacher.store'), teacherPayload(['person_id' => $person->id]));
+
+    expect($person->user->fresh()->getRoleNames()->all())->toBe(['teacher']);
+});
+
+test('the qualification is optional', function () {
+    $admin = teacherAdmin();
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
+
+    $this->actingAs($admin)
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $person->id, 'qualification' => null]))
         ->assertRedirect(route('teacher'));
 
-    $person = Person::with('address')->where('name', 'Carlos Lima')->sole();
+    expect($person->teacher->qualification)->toBeNull();
+});
 
-    expect($person->address)->toBeNull()
-        ->and($person->phones)->toHaveCount(0)
-        ->and($person->teacher->qualification)->toBeNull();
+test('a person that is already a teacher is no longer offered', function () {
+    $admin = teacherAdmin();
+    $teacher = Teacher::factory()->inSchool($admin->school_id)->create();
+
+    $this->actingAs($admin)->get(route('teacher'))
+        ->assertInertia(fn ($page) => $page->has('people', 0));
+
+    $this->post(route('teacher.store'), teacherPayload(['person_id' => $teacher->person_id, 'registration_number' => '999']))
+        ->assertSessionHasErrors('person_id');
+});
+
+test('one person can be both a student and a teacher', function () {
+    $admin = teacherAdmin();
+    $student = Student::factory()->inSchool($admin->school_id)->create();
+    $student->person->user->assignRole('teacher');
+
+    $this->actingAs($admin)
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $student->person_id]))
+        ->assertRedirect(route('teacher'));
+
+    expect($student->person->user->fresh()->hasAllRoles(['student', 'teacher']))->toBeTrue();
 });
 
 test('registering a teacher validates the payload', function () {
     $this->actingAs(teacherAdmin())
-        ->post(route('teacher.store'), teacherPayload([
-            'email' => 'invalid', 'cpf_cnpj' => '123', 'password' => 'short', 'registration_number' => null,
-            'phones' => ['12'], 'emails' => ['not-an-email'],
-        ]))
-        ->assertSessionHasErrors(['email', 'cpf_cnpj', 'password', 'registration_number', 'phones.0', 'emails.0']);
+        ->post(route('teacher.store'), [])
+        ->assertSessionHasErrors(['person_id', 'registration_number']);
 });
 
-test('an address needs every required field once any is filled', function () {
+test('a person from another school cannot become a teacher', function () {
+    $foreign = Person::factory()->inSchool(School::factory()->create()->id)->withRole('teacher')->create();
+
     $this->actingAs(teacherAdmin())
-        ->post(route('teacher.store'), teacherPayload(['address' => ['zip_code' => '01310100', 'street' => 'Avenida Paulista']]))
-        ->assertSessionHasErrors(['address.neighborhood', 'address.city', 'address.state', 'address.number']);
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $foreign->id]))
+        ->assertSessionHasErrors('person_id');
 });
 
-test('registration number and document are unique within the school only', function () {
+test('the registration number is unique within the school only', function () {
     $admin = teacherAdmin();
-    $existing = Teacher::factory()->inSchool($admin->school_id)->create(['registration_number' => 'T1001']);
-    $existing->person->update(['cpf_cnpj' => '98765432100']);
+    Teacher::factory()->inSchool($admin->school_id)->create(['registration_number' => 'T1001']);
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
 
     $this->actingAs($admin)
-        ->post(route('teacher.store'), teacherPayload())
-        ->assertSessionHasErrors(['registration_number', 'cpf_cnpj']);
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $person->id]))
+        ->assertSessionHasErrors('registration_number');
 
     $other = teacherAdmin();
+    $otherPerson = Person::factory()->inSchool($other->school_id)->withRole('teacher')->create();
 
     $this->actingAs($other)
-        ->post(route('teacher.store'), teacherPayload())
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $otherPerson->id]))
         ->assertRedirect(route('teacher'));
 });
 
-test('a teacher can be updated and contacts are replaced', function () {
+test('a teacher can be updated without changing their person', function () {
     $admin = teacherAdmin();
     $teacher = Teacher::factory()->inSchool($admin->school_id)->create();
-    Phone::factory()->count(2)->create(['person_id' => $teacher->person_id]);
-    Email::factory()->create(['person_id' => $teacher->person_id]);
+    $personId = $teacher->person_id;
 
     $this->actingAs($admin)
         ->put(route('teacher.update', $teacher), teacherPayload([
-            'name' => 'Novo Nome', 'email' => 'novo@example.com', 'qualification' => 'Mestrado',
-            'registration_number' => $teacher->registration_number, 'phones' => ['11977776666'], 'emails' => [],
+            'person_id' => Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create()->id,
+            'registration_number' => 'NEW-1', 'qualification' => 'Mestrado',
         ]))
         ->assertRedirect(route('teacher'));
 
-    $person = $teacher->person->fresh(['user', 'address', 'phones', 'emails']);
-
-    expect($person->name)->toBe('Novo Nome')
-        ->and($person->user->name)->toBe('Novo Nome')
-        ->and($person->user->email)->toBe('novo@example.com')
-        ->and($person->address->street)->toBe('Avenida Paulista')
-        ->and($person->phones->pluck('number')->all())->toBe(['11977776666'])
-        ->and($person->emails)->toHaveCount(0)
-        ->and($teacher->fresh()->qualification)->toBe('Mestrado');
+    expect($teacher->fresh())->registration_number->toBe('NEW-1')
+        ->qualification->toBe('Mestrado')
+        ->person_id->toBe($personId);
 });
 
 test('a school admin cannot see or change teachers from another school', function () {
@@ -169,31 +189,33 @@ test('users without the permission cannot access teachers', function () {
 test('a user granted the permissions can manage teachers', function () {
     $user = User::factory()->withRole('student')->create();
     $user->givePermissionTo(['teachers.view', 'teachers.create']);
+    $person = Person::factory()->inSchool($user->school_id)->withRole('teacher')->create();
 
     $this->actingAs($user)->get(route('teacher'))->assertOk();
-    $this->post(route('teacher.store'), teacherPayload())->assertRedirect(route('teacher'));
+    $this->post(route('teacher.store'), teacherPayload(['person_id' => $person->id]))->assertRedirect(route('teacher'));
 });
 
-test('nothing is saved when registering a teacher fails midway', function () {
+test('no teacher is saved when creating fails midway', function () {
+    $admin = teacherAdmin();
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
     Teacher::creating(fn () => throw new RuntimeException('boom'));
 
-    $this->actingAs(teacherAdmin())
-        ->post(route('teacher.store'), teacherPayload())
+    $this->actingAs($admin)
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $person->id]))
         ->assertRedirect(route('teacher'));
 
-    $this->assertDatabaseMissing('users', ['email' => 'carlos@example.com']);
-    $this->assertDatabaseCount('people', 0);
-    $this->assertDatabaseCount('addresses', 0);
-    $this->assertDatabaseCount('phones', 0);
+    expect(Teacher::count())->toBe(0);
 });
 
 test('a friendly error is shown when registering a teacher fails', function () {
+    $admin = teacherAdmin();
+    $person = Person::factory()->inSchool($admin->school_id)->withRole('teacher')->create();
     $this->mock(TeacherRepository::class)
         ->shouldReceive('create')->andThrow(new RepositoryException('boom'));
 
-    $this->actingAs(teacherAdmin())
-        ->post(route('teacher.store'), teacherPayload())
+    $this->actingAs($admin)
+        ->post(route('teacher.store'), teacherPayload(['person_id' => $person->id]))
         ->assertRedirect(route('teacher'));
 
-    $this->assertDatabaseMissing('users', ['email' => 'carlos@example.com']);
+    expect(Teacher::count())->toBe(0);
 });

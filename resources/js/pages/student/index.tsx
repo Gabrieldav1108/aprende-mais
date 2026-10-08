@@ -10,11 +10,17 @@ import { dashboard, student as studentIndex } from '@/routes';
 
 type Props = {
     students: Student[];
+    people: { id: number; name: string }[];
     courses: { id: number; name: string }[];
     statuses: Record<string, string>;
 };
 
-export default function StudentIndex({ students, courses, statuses }: Props) {
+export default function StudentIndex({
+    students,
+    people,
+    courses,
+    statuses,
+}: Props) {
     const canCreateStudents = useCan('students.create');
     const canUpdateStudents = useCan('students.update');
     const createState = useOverlayState();
@@ -48,6 +54,7 @@ export default function StudentIndex({ students, courses, statuses }: Props) {
             {canCreateStudents && (
                 <StudentModal
                     state={createState}
+                    people={people}
                     courses={courses}
                     statuses={statuses}
                 />
@@ -57,6 +64,7 @@ export default function StudentIndex({ students, courses, statuses }: Props) {
                     key={editing.id}
                     state={editState}
                     student={editing}
+                    people={people}
                     courses={courses}
                     statuses={statuses}
                 />

@@ -2,16 +2,19 @@
 
 namespace App\Concerns;
 
+use App\Enums\UserRole;
+use App\Models\Person;
 use App\Models\Teacher;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
 trait TeacherValidationRules
 {
-    use PersonValidationRules, ProfileValidationRules;
+    use SchoolScopedRules;
 
     /**
-     * Validation rules for the teacher and its person data, shared by creation and update.
+     * Validation rules for the teacher data, shared by creation and update.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -20,7 +23,6 @@ trait TeacherValidationRules
         $schoolId = $teacher?->person->school_id ?? $this->user()->school_id;
 
         return [
-            ...$this->personRules($teacher?->person),
             'registration_number' => [
                 'required', 'string', 'max:255',
                 Rule::unique('teachers', 'registration_number')
@@ -32,6 +34,25 @@ trait TeacherValidationRules
                     ->ignore($teacher?->id),
             ],
             'qualification' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    /**
+     * The person that becomes a teacher must belong to the school, have the teacher role and not be a teacher yet.
+     *
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function teacherPersonRules(): array
+    {
+        return [
+            'bail', 'required', 'integer',
+            $this->existsInSchool('people'),
+            function (string $attribute, mixed $value, Closure $fail): void {
+                if (! Person::query()->find($value)?->user->hasRole(UserRole::Teacher->value)) {
+                    $fail(__('A pessoa precisa ter o papel de professor.'));
+                }
+            },
+            Rule::unique('teachers', 'person_id')->whereNull('deleted_at'),
         ];
     }
 }
