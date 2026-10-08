@@ -1,0 +1,49 @@
+const onlyDigits = (value: string): string => value.replace(/\D/g, '');
+
+/**
+ * Format a stored CPF (11 digits) or CNPJ (14 digits) for display.
+ */
+export function formatCpfCnpj(value: string | null | undefined): string {
+    const digits = onlyDigits(value ?? '');
+
+    if (digits.length === 11) {
+        return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    if (digits.length === 14) {
+        return digits.replace(
+            /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+            '$1.$2.$3/$4-$5',
+        );
+    }
+
+    return value ?? '';
+}
+
+/**
+ * Format a stored phone number (DDD + number) for display.
+ */
+export function formatPhone(value: string | null | undefined): string {
+    const digits = onlyDigits(value ?? '');
+
+    if (digits.length === 11) {
+        return digits.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+
+    if (digits.length === 10) {
+        return digits.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+
+    return value ?? '';
+}
+
+/**
+ * Format a stored zip code (8 digits) for display.
+ */
+export function formatZipCode(value: string | null | undefined): string {
+    const digits = onlyDigits(value ?? '');
+
+    return digits.length === 8
+        ? digits.replace(/(\d{5})(\d{3})/, '$1-$2')
+        : (value ?? '');
+}

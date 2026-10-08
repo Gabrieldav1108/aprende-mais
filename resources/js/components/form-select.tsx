@@ -14,6 +14,8 @@ type Props = {
     error?: string;
     isRequired?: boolean;
     isDisabled?: boolean;
+    variant?: 'primary' | 'secondary';
+    fullWidth?: boolean;
 };
 
 /**
@@ -31,13 +33,17 @@ export default function FormSelect({
     error,
     isRequired = false,
     isDisabled = false,
+    variant,
+    fullWidth = false,
 }: Props) {
     return (
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
             <Select
                 name={name}
                 isRequired={isRequired}
                 isDisabled={isDisabled}
+                variant={variant}
+                fullWidth={fullWidth}
                 placeholder="Selecione"
                 defaultSelectedKey={defaultValue ?? undefined}
             >

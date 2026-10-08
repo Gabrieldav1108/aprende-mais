@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicTermController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('academic-terms', [AcademicTermController::class, 'index'])->name('academic-term');
     Route::post('academic-terms', [AcademicTermController::class, 'store'])->name('academic-term.store');
     Route::put('academic-terms/{academic_term}', [AcademicTermController::class, 'update'])->name('academic-term.update');
+
+    Route::get('students', [StudentController::class, 'index'])->name('student');
+    Route::post('students', [StudentController::class, 'store'])->name('student.store');
+    Route::put('students/{student}', [StudentController::class, 'update'])->name('student.update');
 
     Route::scopeBindings()->group(function () {
         Route::post('classroom/{classroom}/subjects', [ClassroomSubjectController::class, 'store'])->name('classroom.subjects.store');

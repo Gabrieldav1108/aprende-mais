@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\StudentStatus;
 use App\Models\Person;
 use App\Models\Student;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,7 +21,9 @@ class StudentFactory extends Factory
     {
         return [
             'person_id' => Person::factory(),
+            'course_id' => null,
             'enrollment_number' => fake()->unique()->numerify('A#####'),
+            'status' => StudentStatus::Active,
         ];
     }
 
