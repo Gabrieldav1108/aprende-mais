@@ -1,4 +1,5 @@
-import { EmptyState, Table } from '@heroui/react';
+import { Button, EmptyState, Table } from '@heroui/react';
+import { Pencil } from 'lucide-react';
 
 export type AcademicTerm = {
     id: number;
@@ -14,12 +15,13 @@ export type AcademicTerm = {
 type Props = {
     terms: AcademicTerm[];
     statuses: Record<string, string>;
+    onEdit?: (term: AcademicTerm) => void;
 };
 
 const formatDate = (value: string) =>
     new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
-export default function AcademicTermTable({ terms, statuses }: Props) {
+export default function AcademicTermTable({ terms, statuses, onEdit }: Props) {
     return (
         <Table>
             <Table.ScrollContainer>
@@ -30,6 +32,7 @@ export default function AcademicTermTable({ terms, statuses }: Props) {
                         <Table.Column>Fim</Table.Column>
                         <Table.Column>Status</Table.Column>
                         <Table.Column>Turmas</Table.Column>
+                        {onEdit ? <Table.Column>Ações</Table.Column> : null}
                     </Table.Header>
                     <Table.Body
                         items={terms}
@@ -54,6 +57,19 @@ export default function AcademicTermTable({ terms, statuses }: Props) {
                                 <Table.Cell>
                                     {item.classrooms_count ?? 0}
                                 </Table.Cell>
+                                {onEdit ? (
+                                    <Table.Cell>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            aria-label={`Editar ${item.name}`}
+                                            onPress={() => onEdit(item)}
+                                        >
+                                            <Pencil className="size-4" />
+                                            Editar
+                                        </Button>
+                                    </Table.Cell>
+                                ) : null}
                             </Table.Row>
                         )}
                     </Table.Body>
