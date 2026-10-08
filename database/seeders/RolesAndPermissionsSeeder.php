@@ -27,9 +27,9 @@ class RolesAndPermissionsSeeder extends Seeder
         'students.view',
         'students.create',
         'students.update',
-        'students.view',
-        'students.create',
-        'students.update',
+        'teachers.view',
+        'teachers.create',
+        'teachers.update',
         'users.manage',
     ];
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\ClassroomSubjectController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -31,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('students', [StudentController::class, 'index'])->name('student');
     Route::post('students', [StudentController::class, 'store'])->name('student.store');
     Route::put('students/{student}', [StudentController::class, 'update'])->name('student.update');
+
+    Route::get('teachers', [TeacherController::class, 'index'])->name('teacher');
+    Route::post('teachers', [TeacherController::class, 'store'])->name('teacher.store');
+    Route::put('teachers/{teacher}', [TeacherController::class, 'update'])->name('teacher.update');
 
     Route::scopeBindings()->group(function () {
         Route::post('classroom/{classroom}/subjects', [ClassroomSubjectController::class, 'store'])->name('classroom.subjects.store');

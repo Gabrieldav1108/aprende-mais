@@ -6,6 +6,7 @@ import {
     GraduationCap,
     LayoutGrid,
     NotebookText,
+    Presentation,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -21,7 +22,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { academicTerm, classroom, course, dashboard, student } from '@/routes';
+import {
+    academicTerm,
+    classroom,
+    course,
+    dashboard,
+    student,
+    teacher,
+} from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -49,6 +57,11 @@ const mainNavItems: NavItem[] = [
         title: 'Alunos',
         href: student(),
         icon: Users,
+    },
+    {
+        title: 'Professores',
+        href: teacher(),
+        icon: Presentation,
     },
 ];
 
