@@ -23,7 +23,7 @@ class AcademicTermFactory extends Factory
         $number = fake()->numberBetween(1, 2);
 
         return [
-            'school_id' => School::factory(),
+            'school_id' => auth()->user()?->school_id ?? School::factory(),
             'name' => "{$year}/{$number}",
             'year' => $year,
             'number' => $number,

@@ -11,16 +11,25 @@ class SchoolScope implements Scope
     /**
      * Restrict queries to the authenticated user's school.
      *
-     * Users without a school (global users) are not restricted.
+     * A school is a tenant, so an authenticated user without one sees nothing.
+     * Guests (console, seeders, queue) are not restricted.
      *
      * @param  Builder<Model>  $builder
      */
     public function apply(Builder $builder, Model $model): void
     {
-        $schoolId = auth()->user()?->school_id;
+        $user = auth()->user();
 
-        if ($schoolId !== null) {
-            $builder->where($model->qualifyColumn('school_id'), $schoolId);
+        if ($user === null) {
+            return;
         }
+
+        if ($user->school_id === null) {
+            $builder->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $builder->where($model->qualifyColumn('school_id'), $user->school_id);
     }
 }

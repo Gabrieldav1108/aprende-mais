@@ -23,13 +23,13 @@ test('users only see data from their own school', function () {
         ->and(Classroom::first()->school_id)->toBe($schoolA->id);
 });
 
-test('users without a school see every school', function () {
+test('users without a school see no data from any school', function () {
     Course::factory()->count(2)->create();
     Subject::factory()->create();
 
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->create(['school_id' => null]));
 
-    expect(Course::count())->toBe(3)->and(Subject::count())->toBe(1);
+    expect(Course::count())->toBe(0)->and(Subject::count())->toBe(0);
 });
 
 test('records created by a school user receive that school id', function () {

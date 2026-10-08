@@ -21,7 +21,7 @@ class CourseFactory extends Factory
     public function definition(): array
     {
         return [
-            'school_id' => School::factory(),
+            'school_id' => auth()->user()?->school_id ?? School::factory(),
             'name' => fake()->unique()->words(2, true),
             'code' => fake()->unique()->bothify('CUR-###'),
             'level' => fake()->randomElement(CourseLevel::cases()),

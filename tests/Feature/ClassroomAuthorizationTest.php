@@ -52,6 +52,7 @@ test('non-admin users cannot create classrooms', function (User $user) {
 })->with('non-admin users');
 
 test('non-admin users cannot update classrooms', function (User $user) {
+    $this->actingAs($user);
     $classroom = Classroom::factory()->create(['name' => 'Turma A']);
 
     $this->actingAs($user)
@@ -62,6 +63,7 @@ test('non-admin users cannot update classrooms', function (User $user) {
 })->with('non-admin users');
 
 test('non-admin users cannot add subjects to a classroom', function (User $user) {
+    $this->actingAs($user);
     $classroom = Classroom::factory()->create();
     $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
     $teacher = Teacher::factory()->create();
@@ -77,6 +79,7 @@ test('non-admin users cannot add subjects to a classroom', function (User $user)
 })->with('non-admin users');
 
 test('non-admin users cannot remove subjects from a classroom', function (User $user) {
+    $this->actingAs($user);
     [$classroom, $classroomSubject] = classroomWithSubject();
 
     $this->actingAs($user)
@@ -87,6 +90,7 @@ test('non-admin users cannot remove subjects from a classroom', function (User $
 })->with('non-admin users');
 
 test('non-admin users can still view classrooms', function (User $user) {
+    $this->actingAs($user);
     $classroom = Classroom::factory()->create();
 
     $this->actingAs($user)->get(route('classroom'))->assertOk();
@@ -110,6 +114,7 @@ test('users granted a permission can perform the matching action', function () {
 
 test('admins can perform every classroom and subject action', function () {
     $admin = User::factory()->admin()->create();
+    $this->actingAs($admin);
     [$classroom, $classroomSubject] = classroomWithSubject();
     $newSubject = Subject::factory()->create(['course_id' => $classroom->course_id]);
     $teacher = Teacher::factory()->create();

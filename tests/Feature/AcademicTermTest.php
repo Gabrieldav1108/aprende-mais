@@ -81,8 +81,9 @@ test('an academic term can be closed', function () {
 });
 
 test('non-admin users cannot manage academic terms', function () {
-    $term = AcademicTerm::factory()->create();
     $teacher = User::factory()->withRole('teacher')->create();
+    $this->actingAs($teacher);
+    $term = AcademicTerm::factory()->create();
 
     $this->actingAs($teacher)->post(route('academic-term.store'), termPayload())->assertForbidden();
     $this->actingAs($teacher)->put(route('academic-term.update', $term), termPayload())->assertForbidden();

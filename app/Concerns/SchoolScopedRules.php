@@ -12,10 +12,8 @@ trait SchoolScopedRules
      */
     protected function existsInSchool(string $table): Exists
     {
-        $schoolId = $this->user()?->school_id;
-
         return Rule::exists($table, 'id')
             ->whereNull('deleted_at')
-            ->when($schoolId !== null, fn (Exists $rule) => $rule->where('school_id', $schoolId));
+            ->where('school_id', $this->user()?->school_id ?? 0);
     }
 }

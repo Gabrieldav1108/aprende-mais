@@ -114,8 +114,9 @@ test('a subject code is unique within the course', function () {
 });
 
 test('non-admin users cannot manage courses', function () {
-    $course = Course::factory()->create();
     $student = User::factory()->withRole('student')->create();
+    $this->actingAs($student);
+    $course = Course::factory()->create();
 
     $this->actingAs($student)->post(route('course.store'), coursePayload())->assertForbidden();
     $this->actingAs($student)->put(route('course.update', $course), coursePayload())->assertForbidden();
