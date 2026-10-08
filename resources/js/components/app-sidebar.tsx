@@ -7,6 +7,7 @@ import {
     LayoutGrid,
     NotebookText,
     Presentation,
+    UserCog,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -29,6 +30,7 @@ import {
     dashboard,
     student,
     teacher,
+    user,
 } from '@/routes';
 import type { NavItem } from '@/types';
 
@@ -62,6 +64,11 @@ const mainNavItems: NavItem[] = [
         title: 'Professores',
         href: teacher(),
         icon: Presentation,
+    },
+    {
+        title: 'Usuários',
+        href: user(),
+        icon: UserCog,
     },
 ];
 

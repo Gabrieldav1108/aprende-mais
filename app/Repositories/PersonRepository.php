@@ -6,17 +6,36 @@ use App\Exceptions\RepositoryException;
 use App\Models\Address;
 use App\Models\Person;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class PersonRepository
 {
     /**
-     * Create a user with the given role together with its person, address, phones and emails.
+     * List the people of the school with their user (login e-mail and roles), address and contacts.
+     *
+     * @return Collection<int, Person>
+     */
+    public function all(): Collection
+    {
+        try {
+            return Person::query()
+                ->with(['user:id,email', 'user.roles:id,name', 'address', 'phones', 'emails'])
+                ->get()
+                ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values();
+        } catch (Throwable $e) {
+            throw new RepositoryException('Failed to list people.', previous: $e);
+        }
+    }
+
+    /**
+     * Create a user, optionally with a role, together with its person, address, phones and emails.
      *
      * @param  array<string, mixed>  $data
      */
-    public function createWithUser(array $data, string $role): Person
+    public function createWithUser(array $data, ?string $role = null): Person
     {
         try {
             return DB::transaction(function () use ($data, $role): Person {
@@ -27,7 +46,10 @@ class PersonRepository
                     'school_id' => auth()->user()->school_id,
                 ]);
                 $user->forceFill(['email_verified_at' => now()])->save();
-                $user->assignRole($role);
+
+                if ($role !== null) {
+                    $user->assignRole($role);
+                }
 
                 $person = Person::query()->create([
                     'user_id' => $user->id,
