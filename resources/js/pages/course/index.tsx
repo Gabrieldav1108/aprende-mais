@@ -1,5 +1,8 @@
+import { Button, useOverlayState } from '@heroui/react';
 import { Head } from '@inertiajs/react';
-import CourseForm from '@/components/course/form';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import CourseModal from '@/components/course/modal';
 import CourseTable from '@/components/course/table';
 import type { Course } from '@/components/course/table';
 import { useCan } from '@/hooks/use-can';
@@ -13,20 +16,52 @@ type Props = {
 
 export default function CourseIndex({ courses, levels, statuses }: Props) {
     const canCreateCourses = useCan('courses.create');
+    const canUpdateCourses = useCan('courses.update');
+    const createState = useOverlayState();
+    const editState = useOverlayState();
+    const [editing, setEditing] = useState<Course | null>(null);
+
+    const edit = (course: Course) => {
+        setEditing(course);
+        editState.open();
+    };
 
     return (
         <>
             <Head title="Cursos" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 {canCreateCourses && (
-                    <CourseForm levels={levels} statuses={statuses} />
+                    <div className="flex justify-end">
+                        <Button onPress={createState.open}>
+                            <Plus className="size-4" />
+                            Novo curso
+                        </Button>
+                    </div>
                 )}
                 <CourseTable
                     courses={courses}
                     levels={levels}
                     statuses={statuses}
+                    onEdit={canUpdateCourses ? edit : undefined}
                 />
             </div>
+
+            {canCreateCourses && (
+                <CourseModal
+                    state={createState}
+                    levels={levels}
+                    statuses={statuses}
+                />
+            )}
+            {canUpdateCourses && editing && (
+                <CourseModal
+                    key={editing.id}
+                    state={editState}
+                    course={editing}
+                    levels={levels}
+                    statuses={statuses}
+                />
+            )}
         </>
     );
 }

@@ -75,6 +75,6 @@ class CourseController extends Controller
             Inertia::flash('toast', ['type' => 'error', 'message' => __('Não foi possível atualizar o curso.')]);
         }
 
-        return to_route('course.show', $course);
+        return back();
     }
 }

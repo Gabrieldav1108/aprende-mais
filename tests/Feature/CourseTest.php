@@ -79,10 +79,20 @@ test('a course can be updated', function () {
     $this->actingAs(User::factory()->admin()->create());
     $course = Course::factory()->create(['name' => 'Antigo']);
 
-    $this->put(route('course.update', $course), coursePayload(['name' => 'Novo', 'code' => $course->code]))
-        ->assertRedirect(route('course.show', $course));
+    $this->from(route('course'))
+        ->put(route('course.update', $course), coursePayload(['name' => 'Novo', 'code' => $course->code]))
+        ->assertRedirect(route('course'));
 
     $this->assertDatabaseHas('courses', ['id' => $course->id, 'name' => 'Novo']);
+});
+
+test('after updating a course the user returns to the page that opened the modal', function () {
+    $this->actingAs(User::factory()->admin()->create());
+    $course = Course::factory()->create();
+
+    $this->from(route('course.show', $course))
+        ->put(route('course.update', $course), coursePayload(['code' => $course->code]))
+        ->assertRedirect(route('course.show', $course));
 });
 
 test('a subject can be added to the course catalog', function () {

@@ -1,4 +1,4 @@
-import { Button, Input, Label, Spinner } from '@heroui/react';
+import { Button, Input, Label, Modal, Spinner } from '@heroui/react';
 import { Form } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import course from '@/routes/course';
@@ -6,25 +6,34 @@ import course from '@/routes/course';
 type Props = {
     courseId: number;
     durationTerms: number;
+    onSuccess: () => void;
+    onCancel: () => void;
 };
 
-export default function CourseSubjectForm({ courseId, durationTerms }: Props) {
+/**
+ * Body and footer of the subject modal; the form closes the modal once saved.
+ */
+export default function CourseSubjectForm({
+    courseId,
+    durationTerms,
+    onSuccess,
+    onCancel,
+}: Props) {
     return (
-        <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-            <h2 className="mb-4 text-base font-medium">
-                Adicionar matéria ao curso
-            </h2>
-            <Form
-                action={course.subjects.store(courseId)}
-                resetOnSuccess
-                className="grid gap-4 sm:grid-cols-5 sm:items-end"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="name">Nome</Label>
+        <Form
+            action={course.subjects.store(courseId)}
+            onSuccess={onSuccess}
+            className="flex flex-col"
+        >
+            {({ processing, errors }) => (
+                <>
+                    <Modal.Body className="grid gap-4 sm:grid-cols-2 sm:items-start">
+                        <div className="grid min-w-0 gap-2 sm:col-span-2">
+                            <Label htmlFor="subject_name">Nome</Label>
                             <Input
-                                id="name"
+                                variant="secondary"
+                                fullWidth
+                                id="subject_name"
                                 name="name"
                                 placeholder="Cálculo I"
                                 required
@@ -32,10 +41,12 @@ export default function CourseSubjectForm({ courseId, durationTerms }: Props) {
                             <InputError message={errors.name} />
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="code">Código</Label>
+                        <div className="grid min-w-0 gap-2">
+                            <Label htmlFor="subject_code">Código</Label>
                             <Input
-                                id="code"
+                                variant="secondary"
+                                fullWidth
+                                id="subject_code"
                                 name="code"
                                 placeholder="MAT-101"
                                 required
@@ -43,11 +54,13 @@ export default function CourseSubjectForm({ courseId, durationTerms }: Props) {
                             <InputError message={errors.code} />
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="workload_hours">
                                 Carga horária
                             </Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="workload_hours"
                                 name="workload_hours"
                                 type="number"
@@ -58,11 +71,13 @@ export default function CourseSubjectForm({ courseId, durationTerms }: Props) {
                             <InputError message={errors.workload_hours} />
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid min-w-0 gap-2">
                             <Label htmlFor="suggested_term_number">
                                 Semestre sugerido
                             </Label>
                             <Input
+                                variant="secondary"
+                                fullWidth
                                 id="suggested_term_number"
                                 name="suggested_term_number"
                                 type="number"
@@ -74,17 +89,23 @@ export default function CourseSubjectForm({ courseId, durationTerms }: Props) {
                                 message={errors.suggested_term_number}
                             />
                         </div>
+                    </Modal.Body>
 
+                    <Modal.Footer>
                         <Button
-                            type="submit"
-                            className="sm:col-span-5 sm:w-fit"
+                            type="button"
+                            variant="secondary"
+                            onPress={onCancel}
                         >
+                            Cancelar
+                        </Button>
+                        <Button type="submit" isDisabled={processing}>
                             {processing && <Spinner />}
                             Adicionar matéria
                         </Button>
-                    </>
-                )}
-            </Form>
-        </div>
+                    </Modal.Footer>
+                </>
+            )}
+        </Form>
     );
 }
