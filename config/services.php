@@ -32,6 +32,7 @@ return [
         'url' => env('BRASILAPI_URL', 'https://brasilapi.com.br/api'),
         'timeout' => (int) env('BRASILAPI_TIMEOUT', 5),
         'cache_days' => (int) env('BRASILAPI_CEP_CACHE_DAYS', 30),
+        'cnpj_cache_hours' => (int) env('BRASILAPI_CNPJ_CACHE_HOURS', 24),
     ],
 
     'admin_bootstrap' => [

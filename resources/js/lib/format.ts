@@ -21,6 +21,26 @@ export function formatCpfCnpj(value: string | null | undefined): string {
 }
 
 /**
+ * Mask a CPF (up to 11 digits) or CNPJ (12 to 14 digits) while it is typed.
+ */
+export function maskCpfCnpj(value: string): string {
+    const digits = onlyDigits(value).slice(0, 14);
+
+    if (digits.length <= 11) {
+        return digits
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    return digits
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+/**
  * Format a stored phone number (DDD + number) for display.
  */
 export function formatPhone(value: string | null | undefined): string {

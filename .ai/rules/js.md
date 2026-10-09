@@ -15,3 +15,6 @@ All registrations (create and edit) use the same modal pattern, as in users, stu
 
 ## Use AddressFields for every address form
 Address inputs must use components/address-fields.tsx (not hand-written inputs). It fills street/neighborhood/city/state and the hidden IBGE codes from the CEP via GET cep.show (CepController -> App\Services\CepService -> BrasilAPI CEP v2, cached). It renders sibling fields sized for a 4-column grid and submits `address[...]`; backend rules live in PersonValidationRules.
+
+## Use CpfCnpjField for CPF/CNPJ inputs
+CPF/CNPJ inputs must use components/cpf-cnpj-field.tsx: it masks the document and, for a complete new CNPJ, calls GET cnpj.show (CnpjController -> App\Services\CnpjService -> BrasilAPI CNPJ v1, cached 24h) and passes the company to onCompanyFound. Fill the address by remounting AddressFields with a new `key` and the company address. Lookup hooks share hooks/use-lookup.ts.

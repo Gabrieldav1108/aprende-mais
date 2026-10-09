@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicTermController;
 use App\Http\Controllers\CepController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
+use App\Http\Controllers\CnpjController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectCatalogController;
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
     Route::get('cep/{cep}', CepController::class)->middleware('throttle:30,1')->name('cep.show');
+    Route::get('cnpj/{cnpj}', CnpjController::class)->middleware('throttle:30,1')->name('cnpj.show');
 
     Route::get('classroom', [ClassroomController::class, 'index'])->name('classroom');
     Route::post('classroom', [ClassroomController::class, 'store'])->name('classroom.store');

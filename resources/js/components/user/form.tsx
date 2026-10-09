@@ -8,11 +8,15 @@ import {
     Spinner,
 } from '@heroui/react';
 import { Form } from '@inertiajs/react';
+import { useRef, useState } from 'react';
 import AddressFields from '@/components/address-fields';
+import type { AddressValue } from '@/components/address-fields';
+import CpfCnpjField from '@/components/cpf-cnpj-field';
 import InputError from '@/components/input-error';
 import MultiInput from '@/components/multi-input';
 import type { Person } from '@/components/user/table';
-import { formatCpfCnpj, formatPhone } from '@/lib/format';
+import type { CnpjCompany } from '@/hooks/use-cnpj-lookup';
+import { formatPhone } from '@/lib/format';
 import user from '@/routes/user';
 
 type Props = {
@@ -33,7 +37,73 @@ export default function UserForm({
 }: Props) {
     const isEditing = Boolean(existing);
     const person = existing;
-    const address = person?.address;
+    const nameRef = useRef<HTMLInputElement>(null);
+    // Remounting the address fields with the company's address fills them.
+    const [address, setAddress] = useState<AddressValue | null | undefined>(
+        person?.address,
+    );
+    const [addressVersion, setAddressVersion] = useState(0);
+    // Same for the contacts: the lists are remounted with the company's phones and e-mail added.
+    const [phones, setPhones] = useState(
+        person?.phones?.map((phone) => formatPhone(phone.number)) ?? [],
+    );
+    const [emails, setEmails] = useState(
+        person?.emails?.map((email) => email.address) ?? [],
+    );
+    const [contactsVersion, setContactsVersion] = useState(0);
+
+    /**
+     * Values currently typed in a repeatable field, read from the form itself.
+     */
+    const typedValues = (field: string): string[] =>
+        Array.from(
+            nameRef.current?.form?.querySelectorAll<HTMLInputElement>(
+                `input[name="${field}[]"]`,
+            ) ?? [],
+        )
+            .map((input) => input.value.trim())
+            .filter((value) => value !== '');
+
+    /**
+     * Append the found values to the typed ones, skipping those already present.
+     */
+    const merge = (
+        typed: string[],
+        found: string[],
+        normalize: (value: string) => string,
+    ): string[] => {
+        const known = new Set(typed.map(normalize));
+
+        return [
+            ...typed,
+            ...found.filter((value) => !known.has(normalize(value))),
+        ];
+    };
+
+    const fillFromCompany = (company: CnpjCompany) => {
+        if (nameRef.current && nameRef.current.value.trim() === '') {
+            nameRef.current.value = company.legal_name;
+        }
+
+        setAddress(company.address);
+        setAddressVersion((version) => version + 1);
+
+        setPhones(
+            merge(
+                typedValues('phones'),
+                company.phones.map((phone) => formatPhone(phone)),
+                (phone) => phone.replace(/\D/g, ''),
+            ),
+        );
+        setEmails(
+            merge(
+                typedValues('emails'),
+                company.email ? [company.email] : [],
+                (email) => email.toLowerCase(),
+            ),
+        );
+        setContactsVersion((version) => version + 1);
+    };
 
     return (
         <Form
@@ -47,6 +117,7 @@ export default function UserForm({
                         <div className="grid min-w-0 gap-2 sm:col-span-2">
                             <Label htmlFor="name">Nome</Label>
                             <Input
+                                ref={nameRef}
                                 variant="secondary"
                                 fullWidth
                                 id="name"
@@ -138,18 +209,11 @@ export default function UserForm({
                             <InputError message={errors.roles} />
                         </div>
 
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="cpf_cnpj">CPF / CNPJ</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="cpf_cnpj"
-                                name="cpf_cnpj"
-                                placeholder="000.000.000-00"
-                                defaultValue={formatCpfCnpj(person?.cpf_cnpj)}
-                            />
-                            <InputError message={errors.cpf_cnpj} />
-                        </div>
+                        <CpfCnpjField
+                            defaultValue={person?.cpf_cnpj}
+                            error={errors.cpf_cnpj}
+                            onCompanyFound={fillFromCompany}
+                        />
 
                         <div className="grid min-w-0 gap-2">
                             <Label htmlFor="birth_date">Nascimento</Label>
@@ -168,33 +232,35 @@ export default function UserForm({
                             Endereço
                         </h3>
 
-                        <AddressFields address={address} errors={errors} />
+                        <AddressFields
+                            key={addressVersion}
+                            address={address}
+                            errors={errors}
+                        />
 
                         <div className="grid min-w-0 gap-4 sm:col-span-2">
                             <MultiInput
+                                key={`phones-${contactsVersion}`}
                                 name="phones"
                                 label="Telefones"
                                 variant="secondary"
                                 addLabel="Adicionar telefone"
                                 placeholder="(11) 99999-0000"
-                                initialValues={person?.phones?.map((phone) =>
-                                    formatPhone(phone.number),
-                                )}
+                                initialValues={phones}
                                 errors={errors}
                             />
                         </div>
 
                         <div className="grid min-w-0 gap-4 sm:col-span-2">
                             <MultiInput
+                                key={`emails-${contactsVersion}`}
                                 name="emails"
                                 label="E-mails de contato"
                                 variant="secondary"
                                 addLabel="Adicionar e-mail"
                                 type="email"
                                 placeholder="contato@exemplo.com"
-                                initialValues={person?.emails?.map(
-                                    (email) => email.address,
-                                )}
+                                initialValues={emails}
                                 errors={errors}
                             />
                         </div>
