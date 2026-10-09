@@ -2,6 +2,7 @@ import { Button, useOverlayState } from '@heroui/react';
 import { Head } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import type { SubjectOption } from '@/components/course/form';
 import CourseModal from '@/components/course/modal';
 import CourseTable from '@/components/course/table';
 import type { Course } from '@/components/course/table';
@@ -10,11 +11,17 @@ import { course as courseIndex, dashboard } from '@/routes';
 
 type Props = {
     courses: Course[];
+    subjectOptions: SubjectOption[];
     levels: Record<string, string>;
     statuses: Record<string, string>;
 };
 
-export default function CourseIndex({ courses, levels, statuses }: Props) {
+export default function CourseIndex({
+    courses,
+    subjectOptions,
+    levels,
+    statuses,
+}: Props) {
     const canCreateCourses = useCan('courses.create');
     const canUpdateCourses = useCan('courses.update');
     const createState = useOverlayState();
@@ -49,6 +56,7 @@ export default function CourseIndex({ courses, levels, statuses }: Props) {
             {canCreateCourses && (
                 <CourseModal
                     state={createState}
+                    subjectOptions={subjectOptions}
                     levels={levels}
                     statuses={statuses}
                 />
@@ -58,6 +66,7 @@ export default function CourseIndex({ courses, levels, statuses }: Props) {
                     key={editing.id}
                     state={editState}
                     course={editing}
+                    subjectOptions={subjectOptions}
                     levels={levels}
                     statuses={statuses}
                 />

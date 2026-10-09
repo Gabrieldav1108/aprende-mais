@@ -12,6 +12,7 @@ export type Course = {
     status: string;
     subjects_count?: number;
     classrooms_count?: number;
+    subject_terms?: { subject_id: number; term: number | null }[];
 };
 
 type Props = {

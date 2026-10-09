@@ -8,14 +8,20 @@ use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
+use App\Models\Subject;
 use App\Repositories\CourseRepository;
+use App\Repositories\TeacherRepository;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CourseController extends Controller
 {
-    public function __construct(private readonly CourseRepository $courses) {}
+    public function __construct(
+        private readonly CourseRepository $courses,
+        private readonly TeacherRepository $teachers,
+    ) {}
 
     /**
      * Display a listing of the courses.
@@ -24,6 +30,7 @@ class CourseController extends Controller
     {
         return Inertia::render('course/index', [
             'courses' => $this->courses->all(),
+            'subjectOptions' => $this->subjectOptions(),
             'levels' => CourseLevel::options(),
             'statuses' => CourseStatus::options(),
         ]);
@@ -53,8 +60,10 @@ class CourseController extends Controller
     public function show(Course $course): Response
     {
         return Inertia::render('course/show', [
-            'course' => $course,
+            'course' => $this->courses->exposeSubjectTerms($course),
+            'subjectOptions' => $this->subjectOptions(),
             'subjects' => $this->courses->subjectsFor($course),
+            'teachers' => $this->teachers->allWithPerson(),
             'levels' => CourseLevel::options(),
             'statuses' => CourseStatus::options(),
         ]);
@@ -76,5 +85,15 @@ class CourseController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Subjects of the school that a course can offer.
+     *
+     * @return Collection<int, Subject>
+     */
+    private function subjectOptions(): Collection
+    {
+        return Subject::query()->orderBy('name')->get(['id', 'name', 'code']);
     }
 }

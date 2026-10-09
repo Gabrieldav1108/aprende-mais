@@ -10,6 +10,8 @@ use Illuminate\Validation\Rule;
 
 trait CourseValidationRules
 {
+    use SchoolScopedRules;
+
     /**
      * Validation rules shared by course creation and update.
      *
@@ -31,6 +33,9 @@ trait CourseValidationRules
             'level' => ['required', Rule::enum(CourseLevel::class)],
             'duration_terms' => ['required', 'integer', 'min:1', 'max:20'],
             'status' => ['required', Rule::enum(CourseStatus::class)],
+            'subjects' => ['nullable', 'array'],
+            'subjects.*.id' => ['required', 'integer', 'distinct', $this->existsInSchool('subjects')],
+            'subjects.*.term' => ['required', 'integer', 'min:1', 'max:'.($this->input('duration_terms') ?? $course?->duration_terms ?? 20)],
         ];
     }
 }

@@ -1,6 +1,8 @@
 import { Button, useOverlayState } from '@heroui/react';
 import { Head, setLayoutProps } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
+import type { Teacher } from '@/components/classroom/table';
+import type { SubjectOption } from '@/components/course/form';
 import CourseModal from '@/components/course/modal';
 import CourseSubjectModal from '@/components/course/subject-modal';
 import CourseSubjectsTable from '@/components/course/subjects-table';
@@ -13,6 +15,8 @@ import course from '@/routes/course';
 type Props = {
     course: Course;
     subjects: CatalogSubject[];
+    teachers: Teacher[];
+    subjectOptions: SubjectOption[];
     levels: Record<string, string>;
     statuses: Record<string, string>;
 };
@@ -20,6 +24,8 @@ type Props = {
 export default function CourseShow({
     course: current,
     subjects,
+    teachers,
+    subjectOptions,
     levels,
     statuses,
 }: Props) {
@@ -73,6 +79,7 @@ export default function CourseShow({
                 <CourseModal
                     state={editState}
                     course={current}
+                    subjectOptions={subjectOptions}
                     levels={levels}
                     statuses={statuses}
                 />
@@ -82,6 +89,7 @@ export default function CourseShow({
                     state={subjectState}
                     courseId={current.id}
                     durationTerms={current.duration_terms}
+                    teachers={teachers}
                 />
             )}
         </>

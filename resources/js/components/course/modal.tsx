@@ -1,11 +1,13 @@
 import { Modal } from '@heroui/react';
 import type { useOverlayState } from '@heroui/react';
 import CourseForm from '@/components/course/form';
+import type { SubjectOption } from '@/components/course/form';
 import type { Course } from '@/components/course/table';
 
 type Props = {
     state: ReturnType<typeof useOverlayState>;
     course?: Course;
+    subjectOptions: SubjectOption[];
     levels: Record<string, string>;
     statuses: Record<string, string>;
 };
@@ -16,6 +18,7 @@ type Props = {
 export default function CourseModal({
     state,
     course,
+    subjectOptions,
     levels,
     statuses,
 }: Props) {
@@ -32,6 +35,7 @@ export default function CourseModal({
                         </Modal.Header>
                         <CourseForm
                             course={course}
+                            subjectOptions={subjectOptions}
                             levels={levels}
                             statuses={statuses}
                             onSuccess={state.close}
