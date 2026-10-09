@@ -26,6 +26,22 @@ class School extends Model implements Auditable
     use HasFactory, \OwenIt\Auditing\Auditable, SoftDeletes;
 
     /**
+     * Every new school starts with the default knowledge areas.
+     */
+    protected static function booted(): void
+    {
+        static::created(fn (School $school) => KnowledgeArea::createDefaultsFor($school));
+    }
+
+    /**
+     * @return HasMany<KnowledgeArea, $this>
+     */
+    public function knowledgeAreas(): HasMany
+    {
+        return $this->hasMany(KnowledgeArea::class);
+    }
+
+    /**
      * @return HasMany<Course, $this>
      */
     public function courses(): HasMany
