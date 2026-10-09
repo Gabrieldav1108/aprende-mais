@@ -5,6 +5,7 @@ use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\SubjectCatalogController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
@@ -25,6 +26,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('courses/{course}', [CourseController::class, 'show'])->name('course.show');
     Route::put('courses/{course}', [CourseController::class, 'update'])->name('course.update');
     Route::post('courses/{course}/subjects', [SubjectController::class, 'store'])->name('course.subjects.store');
+
+    Route::get('subjects', [SubjectCatalogController::class, 'index'])->name('subject');
+    Route::post('subjects', [SubjectCatalogController::class, 'store'])->name('subject.store');
+    Route::put('subjects/{subject}', [SubjectCatalogController::class, 'update'])->name('subject.update');
 
     Route::get('academic-terms', [AcademicTermController::class, 'index'])->name('academic-term');
     Route::post('academic-terms', [AcademicTermController::class, 'store'])->name('academic-term.store');

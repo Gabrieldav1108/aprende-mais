@@ -6,6 +6,7 @@ import {
     GraduationCap,
     LayoutGrid,
     NotebookText,
+    Library,
     Presentation,
     UserCog,
     Users,
@@ -29,6 +30,7 @@ import {
     course,
     dashboard,
     student,
+    subject,
     teacher,
     user,
 } from '@/routes';
@@ -44,6 +46,11 @@ const mainNavItems: NavItem[] = [
         title: 'Cursos',
         href: course(),
         icon: GraduationCap,
+    },
+    {
+        title: 'Matérias',
+        href: subject(),
+        icon: Library,
     },
     {
         title: 'Períodos letivos',
