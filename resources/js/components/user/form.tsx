@@ -8,10 +8,11 @@ import {
     Spinner,
 } from '@heroui/react';
 import { Form } from '@inertiajs/react';
+import AddressFields from '@/components/address-fields';
 import InputError from '@/components/input-error';
 import MultiInput from '@/components/multi-input';
 import type { Person } from '@/components/user/table';
-import { formatCpfCnpj, formatPhone, formatZipCode } from '@/lib/format';
+import { formatCpfCnpj, formatPhone } from '@/lib/format';
 import user from '@/routes/user';
 
 type Props = {
@@ -167,98 +168,7 @@ export default function UserForm({
                             Endereço
                         </h3>
 
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_zip_code">CEP</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_zip_code"
-                                name="address[zip_code]"
-                                placeholder="00000-000"
-                                defaultValue={formatZipCode(address?.zip_code)}
-                            />
-                            <InputError message={errors['address.zip_code']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2 sm:col-span-2">
-                            <Label htmlFor="address_street">Rua</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_street"
-                                name="address[street]"
-                                defaultValue={address?.street ?? ''}
-                            />
-                            <InputError message={errors['address.street']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_number">Número</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_number"
-                                name="address[number]"
-                                defaultValue={address?.number ?? ''}
-                            />
-                            <InputError message={errors['address.number']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_complement">
-                                Complemento
-                            </Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_complement"
-                                name="address[complement]"
-                                defaultValue={address?.complement ?? ''}
-                            />
-                            <InputError
-                                message={errors['address.complement']}
-                            />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_neighborhood">Bairro</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_neighborhood"
-                                name="address[neighborhood]"
-                                defaultValue={address?.neighborhood ?? ''}
-                            />
-                            <InputError
-                                message={errors['address.neighborhood']}
-                            />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_city">Cidade</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_city"
-                                name="address[city]"
-                                defaultValue={address?.city ?? ''}
-                            />
-                            <InputError message={errors['address.city']} />
-                        </div>
-
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="address_state">UF</Label>
-                            <Input
-                                variant="secondary"
-                                fullWidth
-                                id="address_state"
-                                name="address[state]"
-                                maxLength={2}
-                                placeholder="SP"
-                                defaultValue={address?.state ?? ''}
-                            />
-                            <InputError message={errors['address.state']} />
-                        </div>
+                        <AddressFields address={address} errors={errors} />
 
                         <div className="grid min-w-0 gap-4 sm:col-span-2">
                             <MultiInput

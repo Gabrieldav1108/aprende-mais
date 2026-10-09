@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicTermController;
+use App\Http\Controllers\CepController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
 use App\Http\Controllers\CourseController;
@@ -15,6 +16,8 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
+
+    Route::get('cep/{cep}', CepController::class)->middleware('throttle:30,1')->name('cep.show');
 
     Route::get('classroom', [ClassroomController::class, 'index'])->name('classroom');
     Route::post('classroom', [ClassroomController::class, 'store'])->name('classroom.store');

@@ -129,7 +129,7 @@ class PersonRepository
             return;
         }
 
-        $attributes = ['complement' => null, ...$filled];
+        $attributes = ['complement' => null, 'ibge_code' => null, 'ibge_state_code' => null, ...$filled];
 
         if ($person->address !== null) {
             $person->address->update($attributes);

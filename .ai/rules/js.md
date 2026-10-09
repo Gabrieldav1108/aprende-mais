@@ -12,3 +12,6 @@ Known trap: HeroUI's CSS (`@heroui/styles`, imported in `resources/css/app.css`)
 
 ## Create and edit every record in a modal
 All registrations (create and edit) use the same modal pattern, as in users, students and teachers: a "Novo ..." button above the table, an "Editar" button per row, and one HeroUI Modal (components/<resource>/modal.tsx + form.tsx) used for both. The modal closes on success and stays open on validation errors. The edit data comes from the index props; there are no separate create/edit/show pages and no inline forms.
+
+## Use AddressFields for every address form
+Address inputs must use components/address-fields.tsx (not hand-written inputs). It fills street/neighborhood/city/state and the hidden IBGE codes from the CEP via GET cep.show (CepController -> App\Services\CepService -> BrasilAPI CEP v2, cached). It renders sibling fields sized for a 4-column grid and submits `address[...]`; backend rules live in PersonValidationRules.

@@ -38,6 +38,17 @@ export function formatPhone(value: string | null | undefined): string {
 }
 
 /**
+ * Mask a zip code while it is typed (00000-000), keeping at most 8 digits.
+ */
+export function maskZipCode(value: string): string {
+    const digits = onlyDigits(value).slice(0, 8);
+
+    return digits.length > 5
+        ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+        : digits;
+}
+
+/**
  * Format a stored zip code (8 digits) for display.
  */
 export function formatZipCode(value: string | null | undefined): string {

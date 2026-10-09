@@ -41,6 +41,8 @@ trait PersonValidationRules
             'address.state' => [...$this->requiredWithAddress('state'), 'size:2'],
             'address.number' => [...$this->requiredWithAddress('number'), 'max:20'],
             'address.complement' => ['nullable', 'string', 'max:100'],
+            'address.ibge_code' => ['nullable', 'digits:7'],
+            'address.ibge_state_code' => ['nullable', 'digits:2'],
             'phones' => ['nullable', 'array', 'max:5'],
             'phones.*' => ['required', 'string', 'digits_between:10,13'],
             'emails' => ['nullable', 'array', 'max:5'],

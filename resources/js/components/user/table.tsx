@@ -1,16 +1,7 @@
 import { Button, EmptyState, Table } from '@heroui/react';
 import { Pencil } from 'lucide-react';
+import type { AddressValue } from '@/components/address-fields';
 import { formatCpfCnpj } from '@/lib/format';
-
-export type PersonAddress = {
-    zip_code: string | null;
-    street: string | null;
-    neighborhood: string | null;
-    city: string | null;
-    state: string | null;
-    number: string | null;
-    complement: string | null;
-};
 
 export type Person = {
     id: number;
@@ -22,7 +13,7 @@ export type Person = {
         email: string;
         roles: { id: number; name: string }[];
     };
-    address?: PersonAddress | null;
+    address?: AddressValue | null;
     phones?: { id: number; number: string }[];
     emails?: { id: number; address: string }[];
 };

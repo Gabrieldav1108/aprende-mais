@@ -28,6 +28,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'brasilapi' => [
+        'url' => env('BRASILAPI_URL', 'https://brasilapi.com.br/api'),
+        'timeout' => (int) env('BRASILAPI_TIMEOUT', 5),
+        'cache_days' => (int) env('BRASILAPI_CEP_CACHE_DAYS', 30),
+    ],
+
     'admin_bootstrap' => [
         'name' => env('ADMIN_NAME', 'Administrador'),
         'email' => env('ADMIN_EMAIL'),
