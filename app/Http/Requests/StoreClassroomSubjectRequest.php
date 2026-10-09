@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Concerns\SchoolScopedRules;
 use App\Models\ClassroomSubject;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -10,8 +9,6 @@ use Illuminate\Validation\Rule;
 
 class StoreClassroomSubjectRequest extends FormRequest
 {
-    use SchoolScopedRules;
-
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -32,10 +29,12 @@ class StoreClassroomSubjectRequest extends FormRequest
         return [
             'subject_id' => [
                 'required', 'integer',
-                Rule::exists('subjects', 'id')->where('course_id', $classroom->course_id)->whereNull('deleted_at'),
+                Rule::exists('subjects', 'id')
+                    ->whereNull('deleted_at')
+                    ->whereNotNull('teacher_id')
+                    ->whereIn('id', fn ($query) => $query->select('subject_id')->from('course_subject')->where('course_id', $classroom->course_id)),
                 Rule::unique('classroom_subjects', 'subject_id')->where('classroom_id', $classroom->id)->whereNull('deleted_at'),
             ],
-            'teacher_id' => ['required', 'integer', $this->existsRoleInSchool('teachers')],
         ];
     }
 }

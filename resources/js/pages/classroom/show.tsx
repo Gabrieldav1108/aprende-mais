@@ -99,7 +99,6 @@ export default function ClassroomShow({
                     state={subjectState}
                     classroomId={room.id}
                     courseSubjects={courseSubjects}
-                    teachers={teachers}
                 />
             )}
         </>

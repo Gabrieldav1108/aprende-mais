@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Concerns\SchoolScopedRules;
 use App\Models\Subject;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -9,6 +10,8 @@ use Illuminate\Validation\Rule;
 
 class StoreSubjectRequest extends FormRequest
 {
+    use SchoolScopedRules;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -30,8 +33,9 @@ class StoreSubjectRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'code' => [
                 'required', 'string', 'max:255',
-                Rule::unique('subjects', 'code')->where('course_id', $course->id)->whereNull('deleted_at'),
+                Rule::unique('subjects', 'code')->where('school_id', $course->school_id)->whereNull('deleted_at'),
             ],
+            'teacher_id' => ['required', 'integer', $this->existsRoleInSchool('teachers')],
             'workload_hours' => ['required', 'integer', 'min:1', 'max:65535'],
             'suggested_term_number' => ['nullable', 'integer', 'min:1', 'max:'.$course->duration_terms],
         ];

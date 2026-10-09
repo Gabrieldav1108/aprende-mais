@@ -2,23 +2,20 @@ import { Modal } from '@heroui/react';
 import type { useOverlayState } from '@heroui/react';
 import ClassroomSubjectForm from '@/components/classroom/subject-form';
 import type { CourseSubject } from '@/components/classroom/subject-form';
-import type { Teacher } from '@/components/classroom/table';
 
 type Props = {
     state: ReturnType<typeof useOverlayState>;
     classroomId: number;
     courseSubjects: CourseSubject[];
-    teachers: Teacher[];
 };
 
 /**
- * Modal used to offer a course subject in the classroom with a teacher.
+ * Modal used to offer a course subject in the classroom.
  */
 export default function ClassroomSubjectModal({
     state,
     classroomId,
     courseSubjects,
-    teachers,
 }: Props) {
     return (
         <Modal state={state}>
@@ -32,7 +29,6 @@ export default function ClassroomSubjectModal({
                         <ClassroomSubjectForm
                             classroomId={classroomId}
                             courseSubjects={courseSubjects}
-                            teachers={teachers}
                             onSuccess={state.close}
                             onCancel={state.close}
                         />

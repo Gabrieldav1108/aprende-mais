@@ -1,10 +1,9 @@
 <?php
 
-use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Person;
 use App\Models\School;
 use App\Models\Student;
-use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -103,22 +102,13 @@ test('the migration turns existing students and teachers into people', function 
         ->and(Schema::hasColumns('teachers', ['school_id', 'user_id']))->toBeFalse();
 });
 
-test('a subject cannot be offered with a teacher from another school', function () {
+test('a subject cannot be registered with a teacher from another school', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
-    $admin = User::factory()->admin()->create();
-    $this->actingAs($admin);
-    $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
-
-    $this->post(route('classroom.subjects.store', $classroom), [
-        'subject_id' => $subject->id,
-        'teacher_id' => Teacher::factory()->create()->id,
-    ])->assertRedirect();
-
+    $this->actingAs(User::factory()->admin()->create());
+    $course = Course::factory()->create();
     $foreign = Teacher::factory()->inSchool(School::factory()->create()->id)->create();
 
-    $this->post(route('classroom.subjects.store', $classroom), [
-        'subject_id' => $subject->id,
-        'teacher_id' => $foreign->id,
+    $this->post(route('course.subjects.store', $course), [
+        'name' => 'Cálculo I', 'code' => 'MAT-101', 'workload_hours' => 80, 'teacher_id' => $foreign->id,
     ])->assertSessionHasErrors('teacher_id');
 });

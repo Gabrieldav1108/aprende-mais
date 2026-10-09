@@ -6,6 +6,7 @@ export type CatalogSubject = {
     code: string;
     workload_hours: number;
     suggested_term_number: number | null;
+    teacher: { person: { name: string } } | null;
 };
 
 type Props = {
@@ -20,6 +21,7 @@ export default function CourseSubjectsTable({ subjects }: Props) {
                     <Table.Header>
                         <Table.Column isRowHeader>Matéria</Table.Column>
                         <Table.Column>Código</Table.Column>
+                        <Table.Column>Professor</Table.Column>
                         <Table.Column>Carga horária</Table.Column>
                         <Table.Column>Semestre sugerido</Table.Column>
                     </Table.Header>
@@ -37,6 +39,9 @@ export default function CourseSubjectsTable({ subjects }: Props) {
                             <Table.Row>
                                 <Table.Cell>{item.name}</Table.Cell>
                                 <Table.Cell>{item.code}</Table.Cell>
+                                <Table.Cell>
+                                    {item.teacher?.person.name ?? '—'}
+                                </Table.Cell>
                                 <Table.Cell>{item.workload_hours}h</Table.Cell>
                                 <Table.Cell>
                                     {item.suggested_term_number

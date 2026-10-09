@@ -1,11 +1,14 @@
 import { Button, Input, Label, Modal, Spinner } from '@heroui/react';
 import { Form } from '@inertiajs/react';
+import type { Teacher } from '@/components/classroom/table';
+import FormSelect from '@/components/form-select';
 import InputError from '@/components/input-error';
 import course from '@/routes/course';
 
 type Props = {
     courseId: number;
     durationTerms: number;
+    teachers: Teacher[];
     onSuccess: () => void;
     onCancel: () => void;
 };
@@ -16,6 +19,7 @@ type Props = {
 export default function CourseSubjectForm({
     courseId,
     durationTerms,
+    teachers,
     onSuccess,
     onCancel,
 }: Props) {
@@ -41,6 +45,20 @@ export default function CourseSubjectForm({
                             <InputError message={errors.name} />
                         </div>
 
+                        <div className="sm:col-span-2">
+                            <FormSelect
+                                name="teacher_id"
+                                label="Professor"
+                                isRequired
+                                variant="secondary"
+                                fullWidth
+                                options={teachers.map((teacher) => ({
+                                    id: teacher.id,
+                                    label: teacher.person.name,
+                                }))}
+                                error={errors.teacher_id}
+                            />
+                        </div>
                         <div className="grid min-w-0 gap-2">
                             <Label htmlFor="subject_code">Código</Label>
                             <Input

@@ -1,6 +1,5 @@
 import { Button, Modal, Spinner } from '@heroui/react';
 import { Form } from '@inertiajs/react';
-import type { Teacher } from '@/components/classroom/table';
 import FormSelect from '@/components/form-select';
 import classroom from '@/routes/classroom';
 
@@ -9,12 +8,12 @@ export type CourseSubject = {
     name: string;
     code: string;
     workload_hours: number;
+    teacher: { person: { name: string } } | null;
 };
 
 type Props = {
     classroomId: number;
     courseSubjects: CourseSubject[];
-    teachers: Teacher[];
     onSuccess: () => void;
     onCancel: () => void;
 };
@@ -25,7 +24,6 @@ type Props = {
 export default function ClassroomSubjectForm({
     classroomId,
     courseSubjects,
-    teachers,
     onSuccess,
     onCancel,
 }: Props) {
@@ -44,24 +42,13 @@ export default function ClassroomSubjectForm({
                             isRequired
                             variant="secondary"
                             fullWidth
-                            options={courseSubjects.map((subject) => ({
-                                id: subject.id,
-                                label: `${subject.code} · ${subject.name} (${subject.workload_hours}h)`,
-                            }))}
+                            options={courseSubjects
+                                .filter((subject) => subject.teacher !== null)
+                                .map((subject) => ({
+                                    id: subject.id,
+                                    label: `${subject.code} · ${subject.name} (${subject.workload_hours}h) · ${subject.teacher?.person.name}`,
+                                }))}
                             error={errors.subject_id}
-                        />
-
-                        <FormSelect
-                            name="teacher_id"
-                            label="Professor"
-                            isRequired
-                            variant="secondary"
-                            fullWidth
-                            options={teachers.map((teacher) => ({
-                                id: teacher.id,
-                                label: teacher.person.name,
-                            }))}
-                            error={errors.teacher_id}
                         />
                     </Modal.Body>
 

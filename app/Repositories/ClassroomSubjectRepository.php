@@ -11,15 +11,22 @@ use Throwable;
 class ClassroomSubjectRepository
 {
     /**
-     * Offer an existing subject of the classroom's course, taught by the given teacher.
+     * Offer an existing subject of the classroom's course, taught by the subject's teacher.
      */
-    public function attachToClassroom(Classroom $classroom, int $subjectId, int $teacherId): ClassroomSubject
+    public function attachToClassroom(Classroom $classroom, int $subjectId): ClassroomSubject
     {
         try {
             $subject = Subject::query()->findOrFail($subjectId);
 
-            if ($subject->course_id !== $classroom->course_id) {
+            if (! $classroom->course->subjects()->whereKey($subject->id)->exists()) {
                 throw new RepositoryException('Subject does not belong to the classroom course.', [
+                    'classroom_id' => $classroom->id,
+                    'subject_id' => $subjectId,
+                ]);
+            }
+
+            if ($subject->teacher_id === null) {
+                throw new RepositoryException('Subject has no teacher.', [
                     'classroom_id' => $classroom->id,
                     'subject_id' => $subjectId,
                 ]);
@@ -27,14 +34,14 @@ class ClassroomSubjectRepository
 
             return $classroom->classroomSubjects()->create([
                 'subject_id' => $subject->id,
-                'teacher_id' => $teacherId,
+                'teacher_id' => $subject->teacher_id,
             ]);
         } catch (RepositoryException $e) {
             throw $e;
         } catch (Throwable $e) {
             throw new RepositoryException(
                 'Failed to add subject to classroom.',
-                ['classroom_id' => $classroom->id, 'subject_id' => $subjectId, 'teacher_id' => $teacherId],
+                ['classroom_id' => $classroom->id, 'subject_id' => $subjectId],
                 $e,
             );
         }

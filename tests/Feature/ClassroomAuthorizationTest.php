@@ -16,7 +16,7 @@ function classroomWithSubject(): array
     $classroom = Classroom::factory()->create();
     $classroomSubject = ClassroomSubject::create([
         'classroom_id' => $classroom->id,
-        'subject_id' => Subject::factory()->create(['course_id' => $classroom->course_id])->id,
+        'subject_id' => Subject::factory()->forCourse($classroom->course_id)->create()->id,
         'teacher_id' => Teacher::factory()->create()->id,
     ]);
 
@@ -65,13 +65,12 @@ test('non-admin users cannot update classrooms', function (User $user) {
 test('non-admin users cannot add subjects to a classroom', function (User $user) {
     $this->actingAs($user);
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
 
     $this->actingAs($user)
         ->post(route('classroom.subjects.store', $classroom), [
             'subject_id' => $subject->id,
-            'teacher_id' => $teacher->id,
         ])
         ->assertForbidden();
 
@@ -116,7 +115,7 @@ test('admins can perform every classroom and subject action', function () {
     $admin = User::factory()->admin()->create();
     $this->actingAs($admin);
     [$classroom, $classroomSubject] = classroomWithSubject();
-    $newSubject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $newSubject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
 
     $this->actingAs($admin)
@@ -131,7 +130,6 @@ test('admins can perform every classroom and subject action', function () {
     $this->actingAs($admin)
         ->post(route('classroom.subjects.store', $classroom), [
             'subject_id' => $newSubject->id,
-            'teacher_id' => $teacher->id,
         ])
         ->assertRedirect(route('classroom.show', $classroom));
 

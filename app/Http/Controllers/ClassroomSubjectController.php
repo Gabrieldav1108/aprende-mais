@@ -15,16 +15,12 @@ class ClassroomSubjectController extends Controller
     public function __construct(private readonly ClassroomSubjectRepository $classroomSubjects) {}
 
     /**
-     * Create a subject and attach it to the classroom with a teacher.
+     * Create a subject and attach it to the classroom.
      */
     public function store(StoreClassroomSubjectRequest $request, Classroom $classroom): RedirectResponse
     {
         try {
-            $this->classroomSubjects->attachToClassroom(
-                $classroom,
-                $request->validated('subject_id'),
-                $request->validated('teacher_id'),
-            );
+            $this->classroomSubjects->attachToClassroom($classroom, $request->validated('subject_id'));
 
             Inertia::flash('toast', ['type' => 'success', 'message' => __('Matéria adicionada.')]);
         } catch (RepositoryException $e) {

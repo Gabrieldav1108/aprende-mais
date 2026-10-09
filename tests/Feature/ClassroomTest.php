@@ -180,7 +180,7 @@ test('updating a classroom requires a valid shift', function () {
 test('a classroom shows its subjects and teachers', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
     ClassroomSubject::create([
         'classroom_id' => $classroom->id,
@@ -193,22 +193,20 @@ test('a classroom shows its subjects and teachers', function () {
     $response->assertOk();
 });
 
-test('a course subject can be added to a classroom with a teacher', function () {
+test('a course subject is added to a classroom with its own teacher', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
-    $teacher = Teacher::factory()->create();
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
 
     $response = $this->post(route('classroom.subjects.store', $classroom), [
         'subject_id' => $subject->id,
-        'teacher_id' => $teacher->id,
     ]);
 
     $response->assertRedirect(route('classroom.show', $classroom));
     $this->assertDatabaseHas('classroom_subjects', [
         'classroom_id' => $classroom->id,
         'subject_id' => $subject->id,
-        'teacher_id' => $teacher->id,
+        'teacher_id' => $subject->teacher_id,
     ]);
 });
 
@@ -220,7 +218,6 @@ test('a subject from another course cannot be added to a classroom', function ()
 
     $response = $this->post(route('classroom.subjects.store', $classroom), [
         'subject_id' => $otherCourseSubject->id,
-        'teacher_id' => $teacher->id,
     ]);
 
     $response->assertSessionHasErrors('subject_id');
@@ -230,7 +227,7 @@ test('a subject from another course cannot be added to a classroom', function ()
 test('the same subject cannot be offered twice in a classroom', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
     ClassroomSubject::create([
         'classroom_id' => $classroom->id,
@@ -240,29 +237,26 @@ test('the same subject cannot be offered twice in a classroom', function () {
 
     $response = $this->post(route('classroom.subjects.store', $classroom), [
         'subject_id' => $subject->id,
-        'teacher_id' => $teacher->id,
     ]);
 
     $response->assertSessionHasErrors('subject_id');
 });
 
-test('a subject requires an existing teacher', function () {
+test('a subject without a teacher cannot be offered', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create(['teacher_id' => null]);
 
-    $response = $this->post(route('classroom.subjects.store', $classroom), [
-        'subject_id' => $subject->id,
-        'teacher_id' => 999,
-    ]);
+    $response = $this->post(route('classroom.subjects.store', $classroom), ['subject_id' => $subject->id]);
 
-    $response->assertSessionHasErrors('teacher_id');
+    $response->assertSessionHasErrors('subject_id');
+    $this->assertDatabaseCount('classroom_subjects', 0);
 });
 
 test('a friendly error is shown when adding a subject fails', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
     $this->mock(ClassroomSubjectRepository::class, function ($mock) {
         $mock->shouldReceive('attachToClassroom')->andThrow(new RepositoryException('boom'));
@@ -270,7 +264,6 @@ test('a friendly error is shown when adding a subject fails', function () {
 
     $response = $this->post(route('classroom.subjects.store', $classroom), [
         'subject_id' => $subject->id,
-        'teacher_id' => $teacher->id,
     ]);
 
     $response->assertRedirect(route('classroom.show', $classroom));
@@ -282,13 +275,13 @@ test('the repository rejects a subject from another course', function () {
     $subject = Subject::factory()->create();
     $teacher = Teacher::factory()->create();
 
-    app(ClassroomSubjectRepository::class)->attachToClassroom($classroom, $subject->id, $teacher->id);
+    app(ClassroomSubjectRepository::class)->attachToClassroom($classroom, $subject->id);
 })->throws(RepositoryException::class);
 
 test('a subject can be removed from a classroom', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
     $classroomSubject = ClassroomSubject::create([
         'classroom_id' => $classroom->id,
@@ -305,7 +298,7 @@ test('a subject can be removed from a classroom', function () {
 test('a friendly error is shown when removing a subject fails', function () {
     $this->actingAs(User::factory()->admin()->create());
     $classroom = Classroom::factory()->create();
-    $subject = Subject::factory()->create(['course_id' => $classroom->course_id]);
+    $subject = Subject::factory()->forCourse($classroom->course_id)->create();
     $teacher = Teacher::factory()->create();
     $classroomSubject = ClassroomSubject::create([
         'classroom_id' => $classroom->id,
