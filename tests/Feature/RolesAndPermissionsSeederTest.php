@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Laravel\Fortify\Features;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -67,6 +68,8 @@ test('the seeder does not create an admin without credentials', function () {
 });
 
 test('public registration assigns the student role', function () {
+    $this->skipUnlessFortifyHas(Features::registration());
+
     $this->seed(RolesAndPermissionsSeeder::class);
 
     $this->post(route('register.store'), [
