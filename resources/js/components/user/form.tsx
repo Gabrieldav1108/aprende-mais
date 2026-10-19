@@ -142,42 +142,13 @@ export default function UserForm({
                                 required
                             />
                             <InputError message={errors.email} />
+                            {!isEditing && (
+                                <span className="text-xs text-muted-foreground">
+                                    Um convite para definir a senha será enviado
+                                    para este e-mail.
+                                </span>
+                            )}
                         </div>
-
-                        {!isEditing && (
-                            <>
-                                <div className="grid min-w-0 gap-2 sm:col-span-2">
-                                    <Label htmlFor="password">
-                                        Senha inicial
-                                    </Label>
-                                    <Input
-                                        variant="secondary"
-                                        fullWidth
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        autoComplete="new-password"
-                                        required
-                                    />
-                                    <InputError message={errors.password} />
-                                </div>
-
-                                <div className="grid min-w-0 gap-2 sm:col-span-2">
-                                    <Label htmlFor="password_confirmation">
-                                        Confirmar senha
-                                    </Label>
-                                    <Input
-                                        variant="secondary"
-                                        fullWidth
-                                        id="password_confirmation"
-                                        name="password_confirmation"
-                                        type="password"
-                                        autoComplete="new-password"
-                                        required
-                                    />
-                                </div>
-                            </>
-                        )}
 
                         <div className="grid min-w-0 gap-2 sm:col-span-4">
                             <CheckboxGroup

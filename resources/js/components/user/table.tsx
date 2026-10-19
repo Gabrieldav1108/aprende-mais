@@ -1,7 +1,9 @@
-import { Button, EmptyState, Table } from '@heroui/react';
-import { Pencil } from 'lucide-react';
+import { Button, Chip, EmptyState, Table } from '@heroui/react';
+import { Link } from '@inertiajs/react';
+import { Mail, Pencil } from 'lucide-react';
 import type { AddressValue } from '@/components/address-fields';
 import { formatCpfCnpj } from '@/lib/format';
+import user from '@/routes/user';
 
 export type Person = {
     id: number;
@@ -11,6 +13,7 @@ export type Person = {
     user: {
         id: number;
         email: string;
+        email_verified_at: string | null;
         roles: { id: number; name: string }[];
     };
     address?: AddressValue | null;
@@ -53,7 +56,20 @@ export default function UserTable({ people, roles, onEdit }: Props) {
                                         {item.name}
                                     </span>
                                 </Table.Cell>
-                                <Table.Cell>{item.user.email}</Table.Cell>
+                                <Table.Cell>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {item.user.email}
+                                        {!item.user.email_verified_at && (
+                                            <Chip
+                                                size="sm"
+                                                color="warning"
+                                                variant="soft"
+                                            >
+                                                Convite pendente
+                                            </Chip>
+                                        )}
+                                    </div>
+                                </Table.Cell>
                                 <Table.Cell>
                                     {item.cpf_cnpj
                                         ? formatCpfCnpj(item.cpf_cnpj)
@@ -72,15 +88,32 @@ export default function UserTable({ people, roles, onEdit }: Props) {
                                 </Table.Cell>
                                 {onEdit ? (
                                     <Table.Cell>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            aria-label={`Editar ${item.name}`}
-                                            onPress={() => onEdit(item)}
-                                        >
-                                            <Pencil className="size-4" />
-                                            Editar
-                                        </Button>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                aria-label={`Editar ${item.name}`}
+                                                onPress={() => onEdit(item)}
+                                            >
+                                                <Pencil className="size-4" />
+                                                Editar
+                                            </Button>
+                                            {!item.user.email_verified_at && (
+                                                <Link
+                                                    href={user.invitation(
+                                                        item.id,
+                                                    )}
+                                                    method="post"
+                                                    as="button"
+                                                    preserveScroll
+                                                    aria-label={`Reenviar convite para ${item.name}`}
+                                                    className="inline-flex items-center gap-1 text-sm text-foreground hover:underline"
+                                                >
+                                                    <Mail className="size-4" />
+                                                    Reenviar convite
+                                                </Link>
+                                            )}
+                                        </div>
                                     </Table.Cell>
                                 ) : null}
                             </Table.Row>
