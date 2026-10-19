@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Concerns\PasswordValidationRules;
 use App\Concerns\PersonValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Enums\UserRole;
@@ -13,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
-    use PasswordValidationRules, PersonValidationRules, ProfileValidationRules;
+    use PersonValidationRules, ProfileValidationRules;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -37,7 +36,6 @@ class StoreUserRequest extends FormRequest
     {
         return [
             ...$this->profileRules(),
-            'password' => $this->passwordRules(),
             ...$this->personRules(),
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string', Rule::enum(UserRole::class)],

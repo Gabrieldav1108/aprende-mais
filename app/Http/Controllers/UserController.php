@@ -7,6 +7,7 @@ use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Person;
+use App\Notifications\UserInvitationNotification;
 use App\Repositories\PersonRepository;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -33,14 +34,15 @@ class UserController extends Controller
     }
 
     /**
-     * Register a user together with their person.
+     * Register a user together with their person and e-mail them the invitation to define their password.
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
         try {
-            $this->people->createWithUser($request->validated());
+            $person = $this->people->createWithUser($request->validated());
+            $person->user->notify(new UserInvitationNotification);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => __('Usuário cadastrado.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Usuário cadastrado. Convite enviado para :email.', ['email' => $person->user->email])]);
         } catch (RepositoryException $e) {
             report($e);
 

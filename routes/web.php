@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicTermController;
+use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\CepController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
@@ -11,9 +12,15 @@ use App\Http\Controllers\SubjectCatalogController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserInvitationController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
+
+Route::middleware('guest')->group(function () {
+    Route::get('convite/{token}', [AcceptInvitationController::class, 'show'])->name('invitation.show');
+    Route::post('convite', [AcceptInvitationController::class, 'store'])->middleware('throttle:6,1')->name('invitation.store');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
@@ -51,6 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('users', [UserController::class, 'index'])->name('user');
     Route::post('users', [UserController::class, 'store'])->name('user.store');
     Route::put('users/{person}', [UserController::class, 'update'])->name('user.update');
+    Route::post('users/{person}/invitation', [UserInvitationController::class, 'store'])->middleware('throttle:user-invitation')->name('user.invitation');
 
     Route::scopeBindings()->group(function () {
         Route::post('classroom/{classroom}/subjects', [ClassroomSubjectController::class, 'store'])->name('classroom.subjects.store');

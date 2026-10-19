@@ -8,6 +8,7 @@ use App\Models\Person;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 class PersonRepository
@@ -21,7 +22,7 @@ class PersonRepository
     {
         try {
             return Person::query()
-                ->with(['user:id,email', 'user.roles:id,name', 'address', 'phones', 'emails'])
+                ->with(['user:id,email,email_verified_at', 'user.roles:id,name', 'address', 'phones', 'emails'])
                 ->get()
                 ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
                 ->values();
@@ -50,6 +51,7 @@ class PersonRepository
 
     /**
      * Create a user with its roles together with its person, address, phones and emails.
+     * The user gets a random password and an unverified e-mail until they accept the invitation.
      *
      * @param  array<string, mixed>  $data
      */
@@ -60,10 +62,9 @@ class PersonRepository
                 $user = User::query()->create([
                     'name' => $data['name'],
                     'email' => $data['email'],
-                    'password' => $data['password'],
+                    'password' => Str::password(32),
                     'school_id' => auth()->user()->school_id,
                 ]);
-                $user->forceFill(['email_verified_at' => now()])->save();
                 $user->syncRoles($data['roles'] ?? []);
 
                 $person = Person::query()->create([

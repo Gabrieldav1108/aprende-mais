@@ -24,8 +24,6 @@ function userPayload(array $overrides = []): array
     return [
         'name' => 'Ana Prado',
         'email' => 'ana@example.com',
-        'password' => 'password-123',
-        'password_confirmation' => 'password-123',
         'cpf_cnpj' => '111.222.333-96',
         'birth_date' => '1995-08-01',
         'address' => [
@@ -76,7 +74,7 @@ test('a user is registered with roles together with the person, address, phones 
 
     expect($user->school_id)->toBe($admin->school_id)
         ->and($user->getRoleNames()->all())->toBe(['student'])
-        ->and($user->email_verified_at)->not->toBeNull()
+        ->and($user->email_verified_at)->toBeNull()
         ->and($user->name)->toBe('Ana Prado')
         ->and($person->name)->toBe('Ana Prado')
         ->and($person->school_id)->toBe($admin->school_id)
@@ -99,10 +97,10 @@ test('a user can be registered without address, phones and emails', function () 
 test('registering a user validates the payload', function () {
     $this->actingAs(userAdmin())
         ->post(route('user.store'), userPayload([
-            'email' => 'invalid', 'cpf_cnpj' => '123', 'password' => 'short',
+            'email' => 'invalid', 'cpf_cnpj' => '123',
             'phones' => ['12'], 'emails' => ['not-an-email'],
         ]))
-        ->assertSessionHasErrors(['email', 'cpf_cnpj', 'password', 'phones.0', 'emails.0']);
+        ->assertSessionHasErrors(['email', 'cpf_cnpj', 'phones.0', 'emails.0']);
 });
 
 test('an address needs every required field once any is filled', function () {
