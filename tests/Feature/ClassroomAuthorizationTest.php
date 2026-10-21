@@ -88,13 +88,25 @@ test('non-admin users cannot remove subjects from a classroom', function (User $
     $this->assertNotSoftDeleted($classroomSubject);
 })->with('non-admin users');
 
-test('non-admin users can still view classrooms', function (User $user) {
+test('teachers can view classrooms', function () {
+    $teacher = User::factory()->withRole('teacher')->create();
+    $this->actingAs($teacher);
+    $classroom = Classroom::factory()->create();
+
+    $this->actingAs($teacher)->get(route('classroom'))->assertOk();
+    $this->actingAs($teacher)->get(route('classroom.show', $classroom))->assertOk();
+});
+
+test('students and users without a role cannot view classrooms', function (User $user) {
     $this->actingAs($user);
     $classroom = Classroom::factory()->create();
 
-    $this->actingAs($user)->get(route('classroom'))->assertOk();
-    $this->actingAs($user)->get(route('classroom.show', $classroom))->assertOk();
-})->with('non-admin users');
+    $this->actingAs($user)->get(route('classroom'))->assertForbidden();
+    $this->actingAs($user)->get(route('classroom.show', $classroom))->assertForbidden();
+})->with([
+    'without a role' => fn () => User::factory()->create(),
+    'student' => fn () => User::factory()->withRole('student')->create(),
+]);
 
 test('users granted a permission can perform the matching action', function () {
     $teacher = User::factory()->withRole('teacher')->create();
@@ -151,5 +163,10 @@ test('roles and permissions are shared with the frontend', function () {
     $this->actingAs($teacher)->get(route('dashboard'))
         ->assertInertia(fn ($page) => $page
             ->where('auth.roles', ['teacher'])
-            ->where('auth.permissions', ['classrooms.create']));
+            ->where('auth.permissions', fn ($permissions) => collect($permissions)->sort()->values()->all() === [
+                'classrooms.create',
+                'classrooms.view',
+                'students.view',
+                'subjects.view',
+            ]));
 });

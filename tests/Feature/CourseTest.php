@@ -31,13 +31,21 @@ test('guests are redirected to the login page', function () {
     $this->get(route('course'))->assertRedirect(route('login'));
 });
 
-test('authenticated users can list and view courses', function () {
-    $this->actingAs(User::factory()->create());
+test('admins can list and view courses', function () {
+    $this->actingAs(User::factory()->admin()->create());
     $course = Course::factory()->create();
 
     $this->get(route('course'))->assertOk();
     $this->get(route('course.show', $course))->assertOk();
 });
+
+test('teachers and students cannot list or view courses', function (string $role) {
+    $this->actingAs(User::factory()->withRole($role)->create());
+    $course = Course::factory()->create();
+
+    $this->get(route('course'))->assertForbidden();
+    $this->get(route('course.show', $course))->assertForbidden();
+})->with(['teacher', 'student']);
 
 test('a course can be created in the user school', function () {
     $school = School::factory()->create();

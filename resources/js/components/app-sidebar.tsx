@@ -24,6 +24,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissionCheck } from '@/hooks/use-can';
 import {
     academicTerm,
     classroom,
@@ -46,36 +47,43 @@ const mainNavItems: NavItem[] = [
         title: 'Cursos',
         href: course(),
         icon: GraduationCap,
+        permission: 'courses.view',
     },
     {
         title: 'Matérias',
         href: subject(),
         icon: Library,
+        permission: 'subjects.view',
     },
     {
         title: 'Períodos letivos',
         href: academicTerm(),
         icon: CalendarDays,
+        permission: 'terms.view',
     },
     {
         title: 'Turmas',
         href: classroom(),
         icon: NotebookText,
+        permission: 'classrooms.view',
     },
     {
         title: 'Alunos',
         href: student(),
         icon: Users,
+        permission: 'students.view',
     },
     {
         title: 'Professores',
         href: teacher(),
         icon: Presentation,
+        permission: 'teachers.view',
     },
     {
         title: 'Usuários',
         href: user(),
         icon: UserCog,
+        permission: 'users.manage',
     },
 ];
 
@@ -93,6 +101,11 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const can = usePermissionCheck();
+    const visibleNavItems = mainNavItems.filter(
+        (item) => !item.permission || can(item.permission),
+    );
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -108,7 +121,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={visibleNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

@@ -7,6 +7,22 @@ use App\Models\User;
 class ClassroomPolicy
 {
     /**
+     * Determine whether the user can list classrooms.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->can('classrooms.view');
+    }
+
+    /**
+     * Determine whether the user can view a classroom.
+     */
+    public function view(User $user): bool
+    {
+        return $user->can('classrooms.view');
+    }
+
+    /**
      * Determine whether the user can create classrooms.
      */
     public function create(User $user): bool

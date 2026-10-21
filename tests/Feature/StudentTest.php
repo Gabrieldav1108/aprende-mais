@@ -173,11 +173,21 @@ test('users without a school cannot see any student', function () {
 });
 
 test('users without the permission cannot access students', function () {
-    $user = User::factory()->withRole('teacher')->create();
+    $user = User::factory()->withRole('student')->create();
     $this->actingAs($user);
     $student = Student::factory()->create();
 
     $this->get(route('student'))->assertForbidden();
+    $this->post(route('student.store'), studentPayload())->assertForbidden();
+    $this->put(route('student.update', $student), studentPayload())->assertForbidden();
+});
+
+test('teachers can list students but not register or edit them', function () {
+    $user = User::factory()->withRole('teacher')->create();
+    $this->actingAs($user);
+    $student = Student::factory()->create();
+
+    $this->get(route('student'))->assertOk();
     $this->post(route('student.store'), studentPayload())->assertForbidden();
     $this->put(route('student.update', $student), studentPayload())->assertForbidden();
 });

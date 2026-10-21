@@ -5,9 +5,17 @@ import { usePage } from '@inertiajs/react';
  * Admins are granted every permission on the server, so they always pass.
  */
 export function useCan(permission: string): boolean {
+    return usePermissionCheck()(permission);
+}
+
+/**
+ * A checker for several permissions at once, such as filtering navigation items.
+ */
+export function usePermissionCheck(): (permission: string) => boolean {
     const { roles, permissions } = usePage().props.auth;
 
-    return roles.includes('admin') || permissions.includes(permission);
+    return (permission) =>
+        roles.includes('admin') || permissions.includes(permission);
 }
 
 export function useHasRole(role: string): boolean {

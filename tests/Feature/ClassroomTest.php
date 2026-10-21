@@ -19,8 +19,8 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can list classrooms', function () {
-    $this->actingAs(User::factory()->create());
+test('users with the view permission can list classrooms', function () {
+    $this->actingAs(User::factory()->admin()->create());
     Classroom::factory()->count(2)->create();
 
     $response = $this->get(route('classroom'));

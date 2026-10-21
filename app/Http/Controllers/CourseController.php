@@ -28,6 +28,8 @@ class CourseController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', Course::class);
+
         return Inertia::render('course/index', [
             'courses' => $this->courses->all(),
             'subjectOptions' => $this->subjectOptions(),
@@ -59,6 +61,8 @@ class CourseController extends Controller
      */
     public function show(Course $course): Response
     {
+        $this->authorize('view', $course);
+
         return Inertia::render('course/show', [
             'course' => $this->courses->exposeSubjectTerms($course),
             'subjectOptions' => $this->subjectOptions(),

@@ -21,6 +21,8 @@ class AcademicTermController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', AcademicTerm::class);
+
         return Inertia::render('academic-term/index', [
             'terms' => $this->terms->all(),
             'statuses' => TermStatus::options(),

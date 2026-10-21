@@ -29,12 +29,18 @@ test('guests are redirected to the login page', function () {
     $this->get(route('academic-term'))->assertRedirect(route('login'));
 });
 
-test('authenticated users can list academic terms', function () {
-    $this->actingAs(User::factory()->create());
+test('admins can list academic terms', function () {
+    $this->actingAs(User::factory()->admin()->create());
     AcademicTerm::factory()->count(2)->create();
 
     $this->get(route('academic-term'))->assertOk();
 });
+
+test('teachers and students cannot list academic terms', function (string $role) {
+    $this->actingAs(User::factory()->withRole($role)->create());
+
+    $this->get(route('academic-term'))->assertForbidden();
+})->with(['teacher', 'student']);
 
 test('an academic term is created with a generated name', function () {
     $school = School::factory()->create();

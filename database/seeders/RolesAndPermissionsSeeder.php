@@ -15,6 +15,7 @@ class RolesAndPermissionsSeeder extends Seeder
      * @var list<string>
      */
     public const PERMISSIONS = [
+        'classrooms.view',
         'classrooms.create',
         'classrooms.update',
         'classrooms.delete',
@@ -22,9 +23,11 @@ class RolesAndPermissionsSeeder extends Seeder
         'subjects.create',
         'subjects.update',
         'subjects.delete',
+        'courses.view',
         'courses.create',
         'courses.update',
         'courses.delete',
+        'terms.view',
         'terms.create',
         'terms.update',
         'students.view',
@@ -34,6 +37,20 @@ class RolesAndPermissionsSeeder extends Seeder
         'teachers.create',
         'teachers.update',
         'users.manage',
+    ];
+
+    /**
+     * Permissions granted to each non-admin role. Admins bypass every check through Gate::before.
+     *
+     * @var array<string, list<string>>
+     */
+    public const ROLE_PERMISSIONS = [
+        'teacher' => [
+            'classrooms.view',
+            'subjects.view',
+            'students.view',
+        ],
+        'student' => [],
     ];
 
     /**
@@ -48,7 +65,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         foreach (UserRole::cases() as $role) {
-            Role::findOrCreate($role->value);
+            Role::findOrCreate($role->value)->syncPermissions(self::ROLE_PERMISSIONS[$role->value] ?? []);
         }
 
         $this->bootstrapAdmin();

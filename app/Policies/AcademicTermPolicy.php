@@ -7,6 +7,22 @@ use App\Models\User;
 class AcademicTermPolicy
 {
     /**
+     * Determine whether the user can list academic terms.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->can('terms.view');
+    }
+
+    /**
+     * Determine whether the user can view an academic term.
+     */
+    public function view(User $user): bool
+    {
+        return $user->can('terms.view');
+    }
+
+    /**
      * Determine whether the user can create academic terms.
      */
     public function create(User $user): bool

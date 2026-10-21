@@ -31,6 +31,8 @@ class ClassroomController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', Classroom::class);
+
         return Inertia::render('classroom/index', [
             'classrooms' => $this->classrooms->all(),
             ...$this->formOptions(),
@@ -60,6 +62,8 @@ class ClassroomController extends Controller
      */
     public function show(Classroom $classroom): Response
     {
+        $this->authorize('view', $classroom);
+
         return Inertia::render('classroom/show', [
             'classroom' => $this->classrooms->withDetails($classroom),
             'classroomSubjects' => $this->classrooms->subjectsFor($classroom),

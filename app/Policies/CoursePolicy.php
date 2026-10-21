@@ -7,6 +7,22 @@ use App\Models\User;
 class CoursePolicy
 {
     /**
+     * Determine whether the user can list courses.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->can('courses.view');
+    }
+
+    /**
+     * Determine whether the user can view a course.
+     */
+    public function view(User $user): bool
+    {
+        return $user->can('courses.view');
+    }
+
+    /**
      * Determine whether the user can create courses.
      */
     public function create(User $user): bool
