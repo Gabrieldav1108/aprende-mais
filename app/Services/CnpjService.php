@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\CepLookupException;
 use App\Exceptions\CnpjLookupException;
+use App\Rules\CnpjRule;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
@@ -59,27 +60,7 @@ class CnpjService
      */
     public static function isValid(string $cnpj): bool
     {
-        if (! preg_match('/^\d{14}$/', $cnpj) || preg_match('/^(\d)\1{13}$/', $cnpj)) {
-            return false;
-        }
-
-        foreach ([12, 13] as $length) {
-            $sum = 0;
-            $weight = $length - 7;
-
-            for ($i = 0; $i < $length; $i++) {
-                $sum += (int) $cnpj[$i] * $weight;
-                $weight = $weight === 2 ? 9 : $weight - 1;
-            }
-
-            $digit = $sum % 11 < 2 ? 0 : 11 - $sum % 11;
-
-            if ((int) $cnpj[$length] !== $digit) {
-                return false;
-            }
-        }
-
-        return true;
+        return CnpjRule::isValid($cnpj);
     }
 
     /**

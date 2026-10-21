@@ -3,6 +3,8 @@
 namespace App\Concerns;
 
 use App\Models\Person;
+use App\Rules\CnpjRule;
+use App\Rules\CpfRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +28,7 @@ trait PersonValidationRules
 
         return [
             'cpf_cnpj' => [
-                'nullable', 'string', 'regex:/^(\d{11}|\d{14})$/',
+                'nullable', 'string', strlen((string) $this->input('cpf_cnpj')) <= 11 ? new CpfRule : new CnpjRule,
                 Rule::unique('people', 'cpf_cnpj')
                     ->where('school_id', $schoolId)
                     ->whereNull('deleted_at')

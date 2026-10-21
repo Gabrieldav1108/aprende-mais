@@ -103,6 +103,18 @@ test('registering a user validates the payload', function () {
         ->assertSessionHasErrors(['email', 'cpf_cnpj', 'phones.0', 'emails.0']);
 });
 
+test('the document must be a valid cpf or cnpj', function (string $document, bool $valid) {
+    $response = $this->actingAs(userAdmin())->post(route('user.store'), userPayload(['cpf_cnpj' => $document]));
+
+    $valid ? $response->assertSessionHasNoErrors() : $response->assertSessionHasErrors('cpf_cnpj');
+})->with([
+    'valid cpf' => ['529.982.247-25', true],
+    'cpf with wrong check digits' => ['529.982.247-26', false],
+    'valid cnpj' => ['11.222.333/0001-81', true],
+    'cnpj with wrong check digits' => ['11.222.333/0001-80', false],
+    'repeated digits' => ['000.000.000-00', false],
+]);
+
 test('an address needs every required field once any is filled', function () {
     $this->actingAs(userAdmin())
         ->post(route('user.store'), userPayload(['address' => ['zip_code' => '01310100', 'street' => 'Avenida Paulista']]))
