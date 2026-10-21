@@ -2,7 +2,9 @@
 
 namespace App\Policies;
 
+use App\Models\Classroom;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class ClassroomPolicy
 {
@@ -15,11 +17,17 @@ class ClassroomPolicy
     }
 
     /**
-     * Determine whether the user can view a classroom.
+     * Determine whether the user can view a classroom, answering not found for a classroom they do not teach.
      */
-    public function view(User $user): bool
+    public function view(User $user, Classroom $classroom): Response
     {
-        return $user->can('classrooms.view');
+        if (! $user->can('classrooms.view')) {
+            return Response::deny();
+        }
+
+        return Classroom::query()->visibleTo($user)->whereKey($classroom->id)->exists()
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Models\Subject;
 use App\Repositories\SubjectRepository;
 use App\Repositories\TeacherRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,12 +24,12 @@ class SubjectCatalogController extends Controller
     /**
      * Display the subject catalog of the school.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Subject::class);
 
         return Inertia::render('subjects/index', [
-            'subjects' => $this->subjects->all(),
+            'subjects' => $this->subjects->all($request->user()),
             'teachers' => $this->teachers->allWithPerson(),
             'knowledgeAreas' => KnowledgeArea::query()->orderBy('name')->get(['id', 'name']),
         ]);

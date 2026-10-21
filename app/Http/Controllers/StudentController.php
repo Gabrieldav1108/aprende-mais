@@ -12,6 +12,7 @@ use App\Repositories\CourseRepository;
 use App\Repositories\PersonRepository;
 use App\Repositories\StudentRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,12 +27,12 @@ class StudentController extends Controller
     /**
      * Display a listing of the students.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Student::class);
 
         return Inertia::render('student/index', [
-            'students' => $this->students->all(),
+            'students' => $this->students->all($request->user()),
             'people' => $this->people->availableFor(UserRole::Student->value),
             'courses' => $this->courses->all()->map->only(['id', 'name']),
             'statuses' => StudentStatus::options(),

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Exceptions\RepositoryException;
 use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -11,14 +12,15 @@ use Throwable;
 class SubjectRepository
 {
     /**
-     * List the subjects of the school with their teacher and knowledge area.
+     * List the subjects of the school the user may see with their teacher and knowledge area.
      *
      * @return Collection<int, Subject>
      */
-    public function all(): Collection
+    public function all(User $user): Collection
     {
         try {
             return Subject::query()
+                ->visibleTo($user)
                 ->with(['teacher.person:id,name', 'knowledgeArea:id,name'])
                 ->orderBy('name')
                 ->get();

@@ -8,6 +8,7 @@ use App\Models\Classroom;
 use App\Models\ClassroomStudent;
 use App\Models\ClassroomSubject;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -15,14 +16,15 @@ use Throwable;
 class ClassroomRepository
 {
     /**
-     * List all classrooms with their course, term, homeroom teacher and counts.
+     * List the classrooms the user may see with their course, term, homeroom teacher and counts.
      *
      * @return Collection<int, Classroom>
      */
-    public function all(): Collection
+    public function all(User $user): Collection
     {
         try {
             return Classroom::query()
+                ->visibleTo($user)
                 ->with(['course', 'academicTerm', 'homeroomTeacher.person'])
                 ->withCount(['classroomSubjects', 'classroomStudents'])
                 ->latest()

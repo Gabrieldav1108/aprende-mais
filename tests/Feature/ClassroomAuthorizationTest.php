@@ -88,10 +88,11 @@ test('non-admin users cannot remove subjects from a classroom', function (User $
     $this->assertNotSoftDeleted($classroomSubject);
 })->with('non-admin users');
 
-test('teachers can view classrooms', function () {
-    $teacher = User::factory()->withRole('teacher')->create();
-    $this->actingAs($teacher);
-    $classroom = Classroom::factory()->create();
+test('teachers can view the classrooms they teach', function () {
+    $teacher = Teacher::factory()->create();
+    $this->actingAs($teacher->person->user);
+    $classroom = Classroom::factory()->create(['homeroom_teacher_id' => $teacher->id]);
+    $teacher = $teacher->person->user;
 
     $this->actingAs($teacher)->get(route('classroom'))->assertOk();
     $this->actingAs($teacher)->get(route('classroom.show', $classroom))->assertOk();

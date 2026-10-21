@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,5 +59,22 @@ class Subject extends Model implements Auditable
     public function classroomSubjects(): HasMany
     {
         return $this->hasMany(ClassroomSubject::class);
+    }
+
+    /**
+     * Limit to the subjects the user may see: all of them with subjects.view-all, otherwise the ones they teach.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user): void
+    {
+        if ($user->can('subjects.view-all')) {
+            return;
+        }
+
+        $teacherId = $user->teacher?->id;
+
+        $teacherId === null ? $query->whereRaw('1 = 0') : $query->where('teacher_id', $teacherId);
     }
 }

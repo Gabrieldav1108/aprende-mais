@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Exceptions\RepositoryException;
 use App\Models\Person;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -12,14 +13,15 @@ use Throwable;
 class StudentRepository
 {
     /**
-     * List the students of the school with their person, login e-mail and course.
+     * List the students of the school the user may see with their person, login e-mail and course.
      *
      * @return Collection<int, Student>
      */
-    public function all(): Collection
+    public function all(User $user): Collection
     {
         try {
             return Student::query()
+                ->visibleTo($user)
                 ->with(['person.user:id,email', 'course:id,name'])
                 ->get()
                 ->sortBy('person.name', SORT_NATURAL | SORT_FLAG_CASE)

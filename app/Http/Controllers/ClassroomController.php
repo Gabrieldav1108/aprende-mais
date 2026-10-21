@@ -15,6 +15,7 @@ use App\Repositories\ClassroomRepository;
 use App\Repositories\CourseRepository;
 use App\Repositories\TeacherRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,12 +30,12 @@ class ClassroomController extends Controller
     /**
      * Display a listing of the classrooms.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Classroom::class);
 
         return Inertia::render('classroom/index', [
-            'classrooms' => $this->classrooms->all(),
+            'classrooms' => $this->classrooms->all($request->user()),
             ...$this->formOptions(),
         ]);
     }

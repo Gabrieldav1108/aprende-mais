@@ -3,8 +3,11 @@
 namespace App\Models;
 
 use App\Concerns\BelongsToSchoolThroughPerson;
+use App\Enums\ClassroomStatus;
 use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -61,5 +64,25 @@ class Student extends Model implements Auditable
     public function attendences(): HasMany
     {
         return $this->hasMany(Attendence::class);
+    }
+
+    /**
+     * Limit to the students the user may see: all of them with students.view-all, otherwise the ones enrolled in an active classroom they teach.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user): void
+    {
+        if ($user->can('students.view-all')) {
+            return;
+        }
+
+        $classrooms = Classroom::query()
+            ->where('status', ClassroomStatus::Active)
+            ->taughtBy($user->teacher)
+            ->select('id');
+
+        $query->whereHas('classroomStudents', fn (Builder $query) => $query->whereIn('classroom_id', $classrooms));
     }
 }

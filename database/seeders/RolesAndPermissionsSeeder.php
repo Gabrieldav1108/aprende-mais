@@ -16,10 +16,12 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public const PERMISSIONS = [
         'classrooms.view',
+        'classrooms.view-all',
         'classrooms.create',
         'classrooms.update',
         'classrooms.delete',
         'subjects.view',
+        'subjects.view-all',
         'subjects.create',
         'subjects.update',
         'subjects.delete',
@@ -31,6 +33,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'terms.create',
         'terms.update',
         'students.view',
+        'students.view-all',
         'students.create',
         'students.update',
         'teachers.view',
