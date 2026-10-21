@@ -25,7 +25,16 @@ class DatabaseSeeder extends Seeder
         ])->syncRoles(UserRole::Student->value);
 
         if (! app()->isProduction()) {
-            $this->call(DefaultUsersSeeder::class);
+            $this->call([
+                DefaultUsersSeeder::class,
+                KnowledgeAreaSeeder::class,
+                CourseSeeder::class,
+                TeacherSeeder::class,
+                SubjectSeeder::class,
+                AcademicTermSeeder::class,
+                StudentSeeder::class,
+                ClassroomSeeder::class,
+            ]);
         }
     }
 }
