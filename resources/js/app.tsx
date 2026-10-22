@@ -1,4 +1,4 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -34,6 +34,19 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+});
+
+let authenticatedUserId: number | null | undefined;
+
+router.on('navigate', (event) => {
+    const userId = event.detail.page.props.auth?.user?.id ?? null;
+
+    if (authenticatedUserId !== undefined && userId !== authenticatedUserId) {
+        router.flushAll();
+        router.clearHistory();
+    }
+
+    authenticatedUserId = userId;
 });
 
 // This will set light / dark mode on load...

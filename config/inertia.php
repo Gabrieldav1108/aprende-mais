@@ -67,4 +67,21 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | History
+    |--------------------------------------------------------------------------
+    |
+    | Encrypt page data before it is stored in the browser's history state,
+    | so pages (and the permissions shared with them) seen by one user are
+    | not shown to the next user who signs in on the same browser.
+    |
+    */
+
+    'history' => [
+
+        'encrypt' => (bool) env('INERTIA_ENCRYPT_HISTORY', true),
+
+    ],
+
 ];
