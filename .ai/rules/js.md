@@ -18,3 +18,6 @@ Address inputs must use components/address-fields.tsx (not hand-written inputs).
 
 ## Use CpfCnpjField for CPF/CNPJ inputs
 CPF/CNPJ inputs must use components/cpf-cnpj-field.tsx: it masks the document and, for a complete new CNPJ, calls GET cnpj.show (CnpjController -> App\Services\CnpjService -> BrasilAPI CNPJ v1, cached 24h) and passes the company to onCompanyFound. Fill the address by remounting AddressFields with a new `key` and the company address. Lookup hooks share hooks/use-lookup.ts.
+
+## Regenerate Wayfinder with --with-form
+The Vite plugin runs Wayfinder with `formVariants: true`, and many forms use `route.form()`. When regenerating by hand (e.g. after adding a route while Vite HMR is down), always run `php artisan wayfinder:generate --with-form`; without the flag the `.form` variants disappear and `tsc` fails across auth/settings pages.
