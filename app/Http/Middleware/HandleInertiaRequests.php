@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -43,7 +45,27 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $request->user()?->getRoleNames() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
             ],
+            'notifications' => fn (): ?array => $this->notifications($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * The unread count and the latest notifications of the user, listed in the header bell.
+     *
+     * @return array{unread_count: int, latest: Collection<int, DatabaseNotification>}|null
+     */
+    private function notifications(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return [
+            'unread_count' => $user->unreadNotifications()->count(),
+            'latest' => $user->notifications()->latest()->limit(10)->get(['id', 'data', 'read_at', 'created_at']),
         ];
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\ClassroomSubjectController;
 use App\Http\Controllers\CnpjController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EnrolledSubjectController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectCatalogController;
 use App\Http\Controllers\SubjectController;
@@ -73,6 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('my-subjects', [EnrolledSubjectController::class, 'index'])->name('enrolled-subject');
+
+    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notification.read-all');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->name('notification.read');
 });
 
 require __DIR__.'/settings.php';
