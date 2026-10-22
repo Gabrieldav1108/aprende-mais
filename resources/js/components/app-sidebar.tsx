@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
+    BookMarked,
     BookOpen,
     CalendarDays,
     FolderGit2,
@@ -30,6 +31,7 @@ import {
     classroom,
     course,
     dashboard,
+    enrolledSubject,
     student,
     subject,
     teacher,
@@ -66,6 +68,12 @@ const mainNavItems: NavItem[] = [
         href: classroom(),
         icon: NotebookText,
         permission: 'classrooms.view',
+    },
+    {
+        title: 'Minhas matérias',
+        href: enrolledSubject(),
+        icon: BookMarked,
+        permission: 'subjects.view-enrolled',
     },
     {
         title: 'Alunos',

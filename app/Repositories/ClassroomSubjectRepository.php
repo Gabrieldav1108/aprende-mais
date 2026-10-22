@@ -2,11 +2,14 @@
 
 namespace App\Repositories;
 
+use App\Enums\EnrollmentStatus;
 use App\Exceptions\RepositoryException;
 use App\Models\Classroom;
 use App\Models\ClassroomStudent;
 use App\Models\ClassroomSubject;
 use App\Models\Subject;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Throwable;
 
@@ -50,12 +53,12 @@ class ClassroomSubjectRepository
     }
 
     /**
-     * Load the classroom subject's classroom, subject and teacher for display.
+     * Load the classroom subject's classroom, subject and teacher (only the name of their person, as students see it too) for display.
      */
     public function withDetails(ClassroomSubject $classroomSubject): ClassroomSubject
     {
         try {
-            return $classroomSubject->load(['classroom.course', 'classroom.academicTerm', 'subject', 'teacher.person']);
+            return $classroomSubject->load(['classroom.course', 'classroom.academicTerm', 'subject', 'teacher.person:id,name']);
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to load classroom subject.', ['classroom_subject_id' => $classroomSubject->id], $e);
         }
@@ -76,6 +79,33 @@ class ClassroomSubjectRepository
                 ->values();
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to load classroom subject students.', ['classroom_subject_id' => $classroomSubject->id], $e);
+        }
+    }
+
+    /**
+     * Get the subjects of the classrooms where the user's student is actively enrolled, ordered by subject name.
+     *
+     * @return Collection<int, ClassroomSubject>
+     */
+    public function enrolledBy(User $user): Collection
+    {
+        $student = $user->student;
+
+        if ($student === null) {
+            return new Collection;
+        }
+
+        try {
+            return ClassroomSubject::query()
+                ->whereHas('classroom.classroomStudents', fn (Builder $query) => $query
+                    ->where('student_id', $student->id)
+                    ->where('status', EnrollmentStatus::Active))
+                ->with(['classroom.academicTerm', 'subject', 'teacher.person:id,name'])
+                ->get()
+                ->sortBy('subject.name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values();
+        } catch (Throwable $e) {
+            throw new RepositoryException('Failed to load enrolled subjects.', ['user_id' => $user->id], $e);
         }
     }
 

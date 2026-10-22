@@ -69,6 +69,16 @@ export function maskZipCode(value: string): string {
 }
 
 /**
+ * Format a stored timestamp as a local date and time (22/10/2026 14:30).
+ */
+export function formatDateTime(value: string): string {
+    return new Date(value).toLocaleString('pt-BR', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+    });
+}
+
+/**
  * Format a stored zip code (8 digits) for display.
  */
 export function formatZipCode(value: string | null | undefined): string {

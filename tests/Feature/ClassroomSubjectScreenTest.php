@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Announcement;
 use App\Models\Classroom;
 use App\Models\ClassroomStudent;
 use App\Models\ClassroomSubject;
@@ -8,6 +9,7 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Notifications\AnnouncementPublishedNotification;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Inertia\Testing\AssertableInertia;
 
@@ -75,8 +77,79 @@ test('a classroom subject of another classroom is not found', function () {
 test('users without the classroom view permission cannot open a classroom subject', function () {
     $classroom = Classroom::factory()->create();
     $classroomSubject = offeredSubject($classroom);
-    $this->actingAs(User::factory()->withRole('student')->create(['school_id' => $classroom->school_id]));
+    $this->actingAs(User::factory()->create(['school_id' => $classroom->school_id]));
 
     $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
         ->assertForbidden();
+});
+
+test('a student enrolled in the classroom sees the announcements but not the students', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $student = enrollStudentNamed($classroom, 'Ana');
+    $older = Announcement::factory()->forClassroomSubject($classroomSubject)->create(['created_at' => now()->subDay()]);
+    $newer = Announcement::factory()->forClassroomSubject($classroomSubject)->create();
+    Announcement::factory()->forClassroomSubject(offeredSubject($classroom))->create();
+    $this->actingAs($student->person->user);
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('classroom-subject/show')
+            ->has('announcements', 2)
+            ->where('announcements.0.id', $newer->id)
+            ->where('announcements.1.id', $older->id)
+            ->where('canManageAnnouncements', false)
+            ->missing('students')
+            ->missing('statuses')
+            ->missing('classroomSubject.teacher.person.cpf_cnpj'));
+});
+
+test('the subject teacher may manage the announcements', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $this->actingAs(Teacher::find($classroomSubject->teacher_id)->person->user);
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('canManageAnnouncements', true)
+            ->has('students'));
+});
+
+test('a student not actively enrolled in the classroom cannot open its subjects', function (string $status) {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $student = enrollStudentNamed($classroom, 'Ana');
+    ClassroomStudent::where('student_id', $student->id)->update(['status' => $status]);
+    $this->actingAs($student->person->user);
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertNotFound();
+})->with(['on_hold', 'completed']);
+
+test('a student of another classroom cannot open the classroom subject', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $student = enrollStudentNamed(Classroom::factory()->create(['course_id' => $classroom->course_id]), 'Ana');
+    $this->actingAs($student->person->user);
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertNotFound();
+});
+
+test('opening the classroom subject marks its notifications as read', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $otherSubject = offeredSubject($classroom);
+    $user = enrollStudentNamed($classroom, 'Ana')->person->user;
+    $user->notify(new AnnouncementPublishedNotification(Announcement::factory()->forClassroomSubject($classroomSubject)->create()));
+    $user->notify(new AnnouncementPublishedNotification(Announcement::factory()->forClassroomSubject($otherSubject)->create()));
+
+    $this->actingAs($user)
+        ->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertOk();
+
+    expect($user->unreadNotifications()->count())->toBe(1)
+        ->and($user->unreadNotifications()->sole()->data['classroom_subject_id'])->toBe($otherSubject->id);
 });

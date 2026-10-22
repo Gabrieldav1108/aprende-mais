@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\AcademicTermController;
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CepController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
 use App\Http\Controllers\CnpjController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\EnrolledSubjectController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectCatalogController;
 use App\Http\Controllers\SubjectController;
@@ -64,7 +66,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('classroom/{classroom}/subjects', [ClassroomSubjectController::class, 'store'])->name('classroom.subjects.store');
         Route::get('classroom/{classroom}/subjects/{classroomSubject}', [ClassroomSubjectController::class, 'show'])->name('classroom.subjects.show');
         Route::delete('classroom/{classroom}/subjects/{classroomSubject}', [ClassroomSubjectController::class, 'destroy'])->name('classroom.subjects.destroy');
+
+        Route::post('classroom/{classroom}/subjects/{classroomSubject}/announcements', [AnnouncementController::class, 'store'])->name('classroom.subjects.announcements.store');
+        Route::put('classroom/{classroom}/subjects/{classroomSubject}/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('classroom.subjects.announcements.update');
+        Route::delete('classroom/{classroom}/subjects/{classroomSubject}/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('classroom.subjects.announcements.destroy');
     });
+
+    Route::get('my-subjects', [EnrolledSubjectController::class, 'index'])->name('enrolled-subject');
 });
 
 require __DIR__.'/settings.php';

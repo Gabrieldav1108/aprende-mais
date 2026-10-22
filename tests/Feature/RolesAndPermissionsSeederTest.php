@@ -18,6 +18,7 @@ test('the seeder creates the roles and permissions', function () {
             'classrooms.delete',
             'subjects.view',
             'subjects.view-all',
+            'subjects.view-enrolled',
             'subjects.create',
             'subjects.update',
             'subjects.delete',
@@ -44,7 +45,7 @@ test('the seeder grants each role only its own permissions', function () {
 
     expect(Role::findByName('teacher')->permissions->pluck('name')->all())
         ->toEqualCanonicalizing(['classrooms.view', 'subjects.view', 'students.view'])
-        ->and(Role::findByName('student')->permissions)->toBeEmpty()
+        ->and(Role::findByName('student')->permissions->pluck('name')->all())->toBe(['subjects.view-enrolled'])
         ->and(Role::findByName('admin')->permissions)->toBeEmpty();
 });
 
@@ -53,7 +54,7 @@ test('the seeder can run twice without duplicating records', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 
     expect(Role::count())->toBe(3)
-        ->and(Permission::count())->toBe(25);
+        ->and(Permission::count())->toBe(26);
 });
 
 test('the seeder bootstraps an admin when credentials are configured', function () {

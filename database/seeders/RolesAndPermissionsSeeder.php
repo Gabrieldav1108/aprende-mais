@@ -22,6 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'classrooms.delete',
         'subjects.view',
         'subjects.view-all',
+        'subjects.view-enrolled',
         'subjects.create',
         'subjects.update',
         'subjects.delete',
@@ -53,7 +54,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'subjects.view',
             'students.view',
         ],
-        'student' => [],
+        'student' => [
+            'subjects.view-enrolled',
+        ],
     ];
 
     /**

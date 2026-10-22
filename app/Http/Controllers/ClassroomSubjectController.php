@@ -5,16 +5,22 @@ namespace App\Http\Controllers;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreClassroomSubjectRequest;
+use App\Models\Announcement;
 use App\Models\Classroom;
 use App\Models\ClassroomSubject;
+use App\Repositories\AnnouncementRepository;
 use App\Repositories\ClassroomSubjectRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ClassroomSubjectController extends Controller
 {
-    public function __construct(private readonly ClassroomSubjectRepository $classroomSubjects) {}
+    public function __construct(
+        private readonly ClassroomSubjectRepository $classroomSubjects,
+        private readonly AnnouncementRepository $announcements,
+    ) {}
 
     /**
      * Create a subject and attach it to the classroom.
@@ -35,16 +41,29 @@ class ClassroomSubjectController extends Controller
     }
 
     /**
-     * Display the subject offered in the classroom with its teacher and students.
+     * Display the subject offered in the classroom with its teacher, announcements and, to staff, its students.
+     * Opening the page marks the user's notifications about this classroom subject as read.
      */
-    public function show(Classroom $classroom, ClassroomSubject $classroomSubject): Response
+    public function show(Request $request, Classroom $classroom, ClassroomSubject $classroomSubject): Response
     {
         $this->authorize('view', $classroomSubject);
 
-        return Inertia::render('classroom-subject/show', [
-            'classroomSubject' => $this->classroomSubjects->withDetails($classroomSubject),
+        $user = $request->user();
+
+        $user->unreadNotifications()
+            ->where('data->classroom_subject_id', $classroomSubject->id)
+            ->update(['read_at' => now()]);
+
+        $staffProps = $user->can('students.view') ? [
             'students' => $this->classroomSubjects->studentsFor($classroomSubject),
             'statuses' => EnrollmentStatus::options(),
+        ] : [];
+
+        return Inertia::render('classroom-subject/show', [
+            'classroomSubject' => $this->classroomSubjects->withDetails($classroomSubject),
+            'announcements' => $this->announcements->forClassroomSubject($classroomSubject),
+            'canManageAnnouncements' => $user->can('create', [Announcement::class, $classroomSubject]),
+            ...$staffProps,
         ]);
     }
 
