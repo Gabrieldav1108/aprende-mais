@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EnrollmentStatus;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreClassroomSubjectRequest;
 use App\Models\Classroom;
@@ -9,6 +10,7 @@ use App\Models\ClassroomSubject;
 use App\Repositories\ClassroomSubjectRepository;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ClassroomSubjectController extends Controller
 {
@@ -30,6 +32,20 @@ class ClassroomSubjectController extends Controller
         }
 
         return to_route('classroom.show', $classroom);
+    }
+
+    /**
+     * Display the subject offered in the classroom with its teacher and students.
+     */
+    public function show(Classroom $classroom, ClassroomSubject $classroomSubject): Response
+    {
+        $this->authorize('view', $classroomSubject);
+
+        return Inertia::render('classroom-subject/show', [
+            'classroomSubject' => $this->classroomSubjects->withDetails($classroomSubject),
+            'students' => $this->classroomSubjects->studentsFor($classroomSubject),
+            'statuses' => EnrollmentStatus::options(),
+        ]);
     }
 
     /**

@@ -4,8 +4,10 @@ namespace App\Repositories;
 
 use App\Exceptions\RepositoryException;
 use App\Models\Classroom;
+use App\Models\ClassroomStudent;
 use App\Models\ClassroomSubject;
 use App\Models\Subject;
+use Illuminate\Database\Eloquent\Collection;
 use Throwable;
 
 class ClassroomSubjectRepository
@@ -44,6 +46,36 @@ class ClassroomSubjectRepository
                 ['classroom_id' => $classroom->id, 'subject_id' => $subjectId],
                 $e,
             );
+        }
+    }
+
+    /**
+     * Load the classroom subject's classroom, subject and teacher for display.
+     */
+    public function withDetails(ClassroomSubject $classroomSubject): ClassroomSubject
+    {
+        try {
+            return $classroomSubject->load(['classroom.course', 'classroom.academicTerm', 'subject', 'teacher.person']);
+        } catch (Throwable $e) {
+            throw new RepositoryException('Failed to load classroom subject.', ['classroom_subject_id' => $classroomSubject->id], $e);
+        }
+    }
+
+    /**
+     * Get the students enrolled in the classroom subject's classroom, ordered by name.
+     *
+     * @return Collection<int, ClassroomStudent>
+     */
+    public function studentsFor(ClassroomSubject $classroomSubject): Collection
+    {
+        try {
+            return $classroomSubject->classroom->classroomStudents()
+                ->with('student.person')
+                ->get()
+                ->sortBy('student.person.name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values();
+        } catch (Throwable $e) {
+            throw new RepositoryException('Failed to load classroom subject students.', ['classroom_subject_id' => $classroomSubject->id], $e);
         }
     }
 

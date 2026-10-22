@@ -48,7 +48,17 @@ export default function ClassroomSubjectsTable({
                     >
                         {(item) => (
                             <Table.Row>
-                                <Table.Cell>{item.subject.name}</Table.Cell>
+                                <Table.Cell>
+                                    <Link
+                                        href={classroom.subjects.show([
+                                            classroomId,
+                                            item.id,
+                                        ])}
+                                        className="font-medium hover:underline"
+                                    >
+                                        {item.subject.name}
+                                    </Link>
+                                </Table.Cell>
                                 <Table.Cell>{item.subject.code}</Table.Cell>
                                 <Table.Cell>
                                     {item.subject.workload_hours}h

@@ -153,3 +153,11 @@ test('a user with the teacher role but no teacher record sees no records', funct
         ->and(idsInProp($this->get(route('classroom')), 'classrooms'))->toBe([])
         ->and(idsInProp($this->get(route('student')), 'students'))->toBe([]);
 });
+
+test('a teacher can open the subjects of their own classroom but not another teacher\'s', function () {
+    $scenario = teachingScenario();
+    $this->actingAs($scenario['teacher']);
+
+    $this->get(route('classroom.subjects.show', [$scenario['taught'], $scenario['taught']->classroomSubjects->first()]))->assertOk();
+    $this->get(route('classroom.subjects.show', [$scenario['others'], $scenario['others']->classroomSubjects->first()]))->assertNotFound();
+});

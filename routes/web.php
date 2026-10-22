@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::scopeBindings()->group(function () {
         Route::post('classroom/{classroom}/subjects', [ClassroomSubjectController::class, 'store'])->name('classroom.subjects.store');
+        Route::get('classroom/{classroom}/subjects/{classroomSubject}', [ClassroomSubjectController::class, 'show'])->name('classroom.subjects.show');
         Route::delete('classroom/{classroom}/subjects/{classroomSubject}', [ClassroomSubjectController::class, 'destroy'])->name('classroom.subjects.destroy');
     });
 });
