@@ -1,5 +1,13 @@
-import { Button, EmptyState, Table } from '@heroui/react';
-import { Pencil } from 'lucide-react';
+import { Button, Dropdown, EmptyState, Table } from '@heroui/react';
+import { Link, router } from '@inertiajs/react';
+import { ChevronDown, Pencil } from 'lucide-react';
+import classroom from '@/routes/classroom';
+
+type SubjectOffering = {
+    id: number;
+    classroom_id: number;
+    classroom: { id: number; name: string };
+};
 
 export type Subject = {
     id: number;
@@ -10,12 +18,73 @@ export type Subject = {
     knowledge_area_id: number | null;
     teacher: { person: { name: string } } | null;
     knowledge_area: { name: string } | null;
+    classroom_subjects: SubjectOffering[];
 };
 
 type Props = {
     subjects: Subject[];
     onEdit?: (subject: Subject) => void;
 };
+
+const offeringHref = (offering: SubjectOffering) =>
+    classroom.subjects.show([offering.classroom_id, offering.id]);
+
+function SubjectName({ subject }: { subject: Subject }) {
+    const offerings = subject.classroom_subjects;
+
+    if (offerings.length === 0) {
+        return <span className="font-medium">{subject.name}</span>;
+    }
+
+    if (offerings.length === 1) {
+        return (
+            <Link
+                href={offeringHref(offerings[0])}
+                className="font-medium hover:underline"
+            >
+                {subject.name}
+            </Link>
+        );
+    }
+
+    return (
+        <Dropdown>
+            <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 font-medium"
+                aria-label={`Escolher a turma de ${subject.name}`}
+            >
+                {subject.name}
+                <ChevronDown className="size-4 text-muted-foreground" />
+            </Button>
+            <Dropdown.Popover placement="bottom start">
+                <Dropdown.Menu
+                    aria-label={`Turmas de ${subject.name}`}
+                    onAction={(key) => {
+                        const offering = offerings.find(
+                            (item) => item.id === Number(key),
+                        );
+
+                        if (offering) {
+                            router.visit(offeringHref(offering));
+                        }
+                    }}
+                >
+                    {offerings.map((offering) => (
+                        <Dropdown.Item
+                            key={offering.id}
+                            id={offering.id}
+                            textValue={offering.classroom.name}
+                        >
+                            {offering.classroom.name}
+                        </Dropdown.Item>
+                    ))}
+                </Dropdown.Menu>
+            </Dropdown.Popover>
+        </Dropdown>
+    );
+}
 
 export default function SubjectTable({ subjects, onEdit }: Props) {
     return (
@@ -43,9 +112,7 @@ export default function SubjectTable({ subjects, onEdit }: Props) {
                         {(item) => (
                             <Table.Row>
                                 <Table.Cell>
-                                    <span className="font-medium">
-                                        {item.name}
-                                    </span>
+                                    <SubjectName subject={item} />
                                 </Table.Cell>
                                 <Table.Cell>{item.code}</Table.Cell>
                                 <Table.Cell>

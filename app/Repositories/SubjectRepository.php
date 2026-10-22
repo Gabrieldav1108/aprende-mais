@@ -5,14 +5,17 @@ namespace App\Repositories;
 use App\Exceptions\RepositoryException;
 use App\Models\Subject;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class SubjectRepository
 {
     /**
-     * List the subjects of the school the user may see with their teacher and knowledge area.
+     * List the subjects of the school the user may see with their teacher, knowledge area and the classrooms
+     * where the user is linked to them: every offering with classrooms.view-all, otherwise the ones they teach.
      *
      * @return Collection<int, Subject>
      */
@@ -21,7 +24,16 @@ class SubjectRepository
         try {
             return Subject::query()
                 ->visibleTo($user)
-                ->with(['teacher.person:id,name', 'knowledgeArea:id,name'])
+                ->with([
+                    'teacher.person:id,name',
+                    'knowledgeArea:id,name',
+                    'classroomSubjects' => fn (HasMany $query) => $query
+                        ->select(['id', 'subject_id', 'classroom_id'])
+                        ->when(! $user->can('classrooms.view-all'), fn (Builder $query) => $query->where('teacher_id', $user->teacher?->id))
+                        ->whereHas('classroom')
+                        ->with('classroom:id,name')
+                        ->orderBy('classroom_id'),
+                ])
                 ->orderBy('name')
                 ->get();
         } catch (Throwable $e) {
