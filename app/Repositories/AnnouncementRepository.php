@@ -17,7 +17,7 @@ use Throwable;
 class AnnouncementRepository
 {
     /**
-     * Get the classroom subject's announcements, newest first, with their author.
+     * Get the classroom subject's announcements, pinned ones first and then newest first, with their author.
      *
      * @return Collection<int, Announcement>
      */
@@ -26,6 +26,7 @@ class AnnouncementRepository
         try {
             return $classroomSubject->announcements()
                 ->with('author:id,name')
+                ->orderByDesc('is_pinned')
                 ->latest()
                 ->latest('id')
                 ->get();
@@ -37,7 +38,7 @@ class AnnouncementRepository
     /**
      * Post an announcement to the classroom subject and notify the students actively enrolled in its classroom.
      *
-     * @param  array{title: string, body: string, send_email?: bool}  $data
+     * @param  array{title: string, body: string, is_pinned?: bool, send_email?: bool}  $data
      */
     public function publish(ClassroomSubject $classroomSubject, User $author, array $data): Announcement
     {
@@ -47,6 +48,7 @@ class AnnouncementRepository
                     'author_id' => $author->id,
                     'title' => $data['title'],
                     'body' => $data['body'],
+                    'is_pinned' => (bool) ($data['is_pinned'] ?? false),
                     'sent_by_email' => (bool) ($data['send_email'] ?? false),
                 ]);
 
@@ -76,9 +78,9 @@ class AnnouncementRepository
     }
 
     /**
-     * Change the announcement's title and body, without notifying the students again.
+     * Change the announcement's title, body and pin, without notifying the students again.
      *
-     * @param  array{title: string, body: string}  $data
+     * @param  array{title: string, body: string, is_pinned?: bool}  $data
      */
     public function update(Announcement $announcement, array $data): Announcement
     {
@@ -86,6 +88,7 @@ class AnnouncementRepository
             $announcement->update([
                 'title' => $data['title'],
                 'body' => $data['body'],
+                'is_pinned' => (bool) ($data['is_pinned'] ?? false),
             ]);
 
             return $announcement;

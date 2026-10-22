@@ -146,3 +146,16 @@
 .table-root .table__column {
     color: var(--muted-foreground);
 }
+
+/* HeroUI tabs use --muted for idle tab text and --accent for the underline, both background tints in the shadcn theme. */
+.tabs__tab {
+    color: var(--muted-foreground);
+}
+
+.tabs--secondary .tabs__tab[data-selected='true'] {
+    color: var(--foreground);
+}
+
+.tabs--secondary .tabs__indicator {
+    background-color: var(--foreground);
+}

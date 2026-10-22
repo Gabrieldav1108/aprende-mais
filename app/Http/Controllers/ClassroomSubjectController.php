@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EnrollmentStatus;
+use App\Enums\Shift;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreClassroomSubjectRequest;
 use App\Models\Announcement;
@@ -63,6 +64,7 @@ class ClassroomSubjectController extends Controller
             'classroomSubject' => $this->classroomSubjects->withDetails($classroomSubject),
             'announcements' => $this->announcements->forClassroomSubject($classroomSubject),
             'canManageAnnouncements' => $user->can('create', [Announcement::class, $classroomSubject]),
+            'shifts' => Shift::options(),
             ...$staffProps,
         ]);
     }

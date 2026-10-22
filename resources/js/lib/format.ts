@@ -79,6 +79,28 @@ export function formatDateTime(value: string): string {
 }
 
 /**
+ * The abbreviated month of a stored timestamp, without the trailing dot (out).
+ */
+export function formatShortMonth(value: string): string {
+    return new Date(value)
+        .toLocaleDateString('pt-BR', { month: 'short' })
+        .replace('.', '');
+}
+
+/**
+ * Format a stored timestamp as day, abbreviated month and time (18 out, 19:40).
+ */
+export function formatShortDateTime(value: string): string {
+    const date = new Date(value);
+    const time = date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    return `${date.getDate()} ${formatShortMonth(value)}, ${time}`;
+}
+
+/**
  * Format a stored zip code (8 digits) for display.
  */
 export function formatZipCode(value: string | null | undefined): string {

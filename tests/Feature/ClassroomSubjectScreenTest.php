@@ -105,6 +105,21 @@ test('a student enrolled in the classroom sees the announcements but not the stu
             ->missing('classroomSubject.teacher.person.cpf_cnpj'));
 });
 
+test('pinned announcements are listed first', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $pinned = Announcement::factory()->forClassroomSubject($classroomSubject)->create(['is_pinned' => true, 'created_at' => now()->subWeek()]);
+    $newest = Announcement::factory()->forClassroomSubject($classroomSubject)->create();
+    $this->actingAs(User::factory()->admin()->create(['school_id' => $classroom->school_id]));
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('announcements.0.id', $pinned->id)
+            ->where('announcements.0.is_pinned', true)
+            ->where('announcements.1.id', $newest->id)
+            ->where('shifts.evening', 'Noite'));
+});
+
 test('the subject teacher may manage the announcements', function () {
     $classroom = Classroom::factory()->create();
     $classroomSubject = offeredSubject($classroom);

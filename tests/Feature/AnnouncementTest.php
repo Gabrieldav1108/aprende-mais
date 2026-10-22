@@ -160,6 +160,25 @@ test('the subject teacher edits an announcement without notifying the students a
     Notification::assertNothingSent();
 });
 
+test('an announcement may be pinned when published and unpinned when edited', function () {
+    Notification::fake();
+    $classroomSubject = subjectWithTeacher();
+    $this->actingAs(teacherUserOf($classroomSubject));
+
+    $this->post(route('classroom.subjects.announcements.store', [$classroomSubject->classroom_id, $classroomSubject]), announcementPayload(['is_pinned' => '1']))
+        ->assertRedirect();
+
+    $announcement = Announcement::sole();
+    expect($announcement->is_pinned)->toBeTrue();
+
+    $this->put(route('classroom.subjects.announcements.update', [$classroomSubject->classroom_id, $classroomSubject, $announcement]), [
+        'title' => $announcement->title,
+        'body' => $announcement->body,
+    ])->assertRedirect();
+
+    expect($announcement->fresh()->is_pinned)->toBeFalse();
+});
+
 test('the subject teacher deletes an announcement', function () {
     $classroomSubject = subjectWithTeacher();
     $announcement = Announcement::factory()->forClassroomSubject($classroomSubject)->create();

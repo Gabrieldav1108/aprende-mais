@@ -19,12 +19,13 @@ use OwenIt\Auditing\Contracts\Auditable;
  * @property int $author_id
  * @property string $title
  * @property string $body
+ * @property bool $is_pinned
  * @property bool $sent_by_email
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
-#[Fillable(['classroom_subject_id', 'author_id', 'title', 'body', 'sent_by_email'])]
+#[Fillable(['classroom_subject_id', 'author_id', 'title', 'body', 'is_pinned', 'sent_by_email'])]
 class Announcement extends Model implements Auditable
 {
     /** @use HasFactory<AnnouncementFactory> */
@@ -38,6 +39,7 @@ class Announcement extends Model implements Auditable
     protected function casts(): array
     {
         return [
+            'is_pinned' => 'boolean',
             'sent_by_email' => 'boolean',
         ];
     }

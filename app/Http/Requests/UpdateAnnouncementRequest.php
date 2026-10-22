@@ -25,6 +25,7 @@ class UpdateAnnouncementRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:150'],
             'body' => ['required', 'string', 'max:5000'],
+            'is_pinned' => ['boolean'],
         ];
     }
 }

@@ -79,6 +79,17 @@ export default function AnnouncementForm({
                             <InputError message={errors.body} />
                         </div>
 
+                        <Checkbox
+                            name="is_pinned"
+                            value="1"
+                            defaultSelected={existing?.is_pinned ?? false}
+                        >
+                            <Checkbox.Control>
+                                <Checkbox.Indicator />
+                            </Checkbox.Control>
+                            <Checkbox.Content>Fixar no topo</Checkbox.Content>
+                        </Checkbox>
+
                         {!existing && (
                             <Checkbox
                                 name="send_email"
