@@ -101,6 +101,17 @@ export function formatShortDateTime(value: string): string {
 }
 
 /**
+ * Format a file size in bytes for display (850 KB, 12,4 MB).
+ */
+export function formatFileSize(bytes: number): string {
+    if (bytes < 1024 * 1024) {
+        return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB`;
+}
+
+/**
  * Format a stored zip code (8 digits) for display.
  */
 export function formatZipCode(value: string | null | undefined): string {

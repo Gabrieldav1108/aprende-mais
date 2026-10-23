@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicTermController;
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\CepController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomSubjectController;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('my-subjects', [EnrolledSubjectController::class, 'index'])->name('enrolled-subject');
+
+    Route::post('attachments', [AttachmentController::class, 'store'])->middleware('throttle:30,1')->name('attachments.store');
+    Route::post('attachments/{attachment}/complete', [AttachmentController::class, 'complete'])->name('attachments.complete');
+    Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
 
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notification.read-all');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->name('notification.read');
