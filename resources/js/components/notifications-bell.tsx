@@ -1,6 +1,6 @@
 import { Badge, Button, Popover } from '@heroui/react';
 import { router, usePage } from '@inertiajs/react';
-import { Bell } from 'lucide-react';
+import { Bell, CircleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { formatDateTime } from '@/lib/format';
 import notification from '@/routes/notification';
@@ -78,9 +78,14 @@ export function NotificationsBell() {
                                         onClick={() => open(item)}
                                         className="flex w-full items-start gap-2 px-4 py-3 text-left hover:bg-muted"
                                     >
-                                        <span
-                                            className={`mt-1.5 size-2 shrink-0 rounded-full ${item.read_at ? 'bg-transparent' : 'bg-primary'}`}
-                                        />
+                                        {item.read_at ? (
+                                            <span className="size-4 shrink-0" />
+                                        ) : (
+                                            <CircleAlert
+                                                className="mt-0.5 size-4 shrink-0 text-amber-500 dark:text-amber-400"
+                                                aria-label="Novo aviso"
+                                            />
+                                        )}
                                         <span className="min-w-0">
                                             <span className="block truncate text-sm font-medium text-foreground">
                                                 {item.data.title}
