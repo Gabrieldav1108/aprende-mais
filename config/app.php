@@ -68,6 +68,12 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | The timezone dates are shown in where the browser can't convert them, such as e-mails.
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'America/Sao_Paulo'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------

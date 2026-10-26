@@ -83,6 +83,20 @@ class ClassroomSubjectRepository
     }
 
     /**
+     * Get the users of the students actively enrolled in the classroom subject's classroom, who are notified of what is posted to it.
+     *
+     * @return Collection<int, User>
+     */
+    public function activeStudentUsers(ClassroomSubject $classroomSubject): Collection
+    {
+        return User::query()
+            ->whereHas('student.classroomStudents', fn (Builder $query) => $query
+                ->where('classroom_id', $classroomSubject->classroom_id)
+                ->where('status', EnrollmentStatus::Active))
+            ->get();
+    }
+
+    /**
      * Get the subjects of the classrooms where the user's student is actively enrolled, ordered by subject name.
      *
      * @return Collection<int, ClassroomSubject>

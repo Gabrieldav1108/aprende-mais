@@ -92,7 +92,10 @@ export function NotificationsBell() {
                                             </span>
                                             {item.data.subject && (
                                                 <span className="block truncate text-xs text-muted-foreground">
-                                                    Novo aviso em{' '}
+                                                    {item.data.kind ===
+                                                    'activity'
+                                                        ? 'Nova atividade em'
+                                                        : 'Novo aviso em'}{' '}
                                                     {item.data.subject}
                                                     {item.data.classroom &&
                                                         ` · ${item.data.classroom}`}

@@ -12,6 +12,7 @@ import { formatFileSize } from '@/lib/format';
 
 type Props = {
     onChange: (attachmentIds: number[]) => void;
+    onPendingChange?: (hasPending: boolean) => void;
     maxFiles?: number;
     isDisabled?: boolean;
 };
@@ -23,10 +24,12 @@ type QueuedFile = {
 
 /**
  * Pick files and upload each one straight to the bucket, reporting the ids of the confirmed uploads
- * so the parent form can send them as attachment_ids[].
+ * so the parent form can send them as attachment_ids[], and whether some picked file is still uploading
+ * or failed, so the form can wait for it.
  */
 export default function AttachmentUpload({
     onChange,
+    onPendingChange,
     maxFiles = 5,
     isDisabled = false,
 }: Props) {
@@ -42,6 +45,10 @@ export default function AttachmentUpload({
                 .filter((id) => id !== undefined),
         );
     }, [queue, uploaded, onChange]);
+
+    useEffect(() => {
+        onPendingChange?.(queue.some(({ key }) => uploaded[key] === undefined));
+    }, [queue, uploaded, onPendingChange]);
 
     const pick = (files: FileList | null) => {
         const picked = Array.from(files ?? []);

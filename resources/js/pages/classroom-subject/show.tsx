@@ -1,8 +1,11 @@
 import { Button, Chip, Tabs, useOverlayState } from '@heroui/react';
-import { Head, setLayoutProps } from '@inertiajs/react';
+import { Head, setLayoutProps, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import ActivityList from '@/components/activity/list';
+import type { Activity } from '@/components/activity/list';
+import ActivityModal from '@/components/activity/modal';
 import AnnouncementList from '@/components/announcement/list';
 import type { Announcement } from '@/components/announcement/list';
 import AnnouncementModal from '@/components/announcement/modal';
@@ -26,6 +29,8 @@ type Props = {
     };
     announcements: Announcement[];
     canManageAnnouncements: boolean;
+    activities: Activity[];
+    canManageActivities: boolean;
     shifts: Record<string, string>;
     students?: ClassroomSubjectStudent[];
     statuses?: Record<string, string>;
@@ -71,6 +76,8 @@ export default function ClassroomSubjectShow({
     classroomSubject,
     announcements,
     canManageAnnouncements,
+    activities,
+    canManageActivities,
     shifts,
     students,
     statuses,
@@ -81,9 +88,33 @@ export default function ClassroomSubjectShow({
     const editState = useOverlayState();
     const [editing, setEditing] = useState<Announcement | null>(null);
 
+    const createActivityState = useOverlayState();
+    const editActivityState = useOverlayState();
+    const [editingActivity, setEditingActivity] = useState<Activity | null>(
+        null,
+    );
+    const tabs = [
+        'announcements',
+        ...(students ? ['students'] : []),
+        'activities',
+    ];
+    const requestedTab = new URLSearchParams(usePage().url.split('?')[1]).get(
+        'tab',
+    );
+    const [initialTab] = useState(
+        requestedTab && tabs.includes(requestedTab)
+            ? requestedTab
+            : 'announcements',
+    );
+
     const edit = (announcement: Announcement) => {
         setEditing(announcement);
         editState.open();
+    };
+
+    const editActivity = (activity: Activity) => {
+        setEditingActivity(activity);
+        editActivityState.open();
     };
 
     const subjectHref = classroom.subjects.show([room.id, classroomSubject.id]);
@@ -134,7 +165,7 @@ export default function ClassroomSubjectShow({
                     </div>
                 </header>
 
-                <Tabs variant="secondary" disabledKeys={['activities']}>
+                <Tabs variant="secondary" defaultSelectedKey={initialTab}>
                     <Tabs.ListContainer>
                         <Tabs.List
                             aria-label="Seções da matéria"
@@ -163,7 +194,7 @@ export default function ClassroomSubjectShow({
                                 className="h-11 w-auto gap-2 px-3"
                             >
                                 Atividades
-                                <TabCount>Em breve</TabCount>
+                                <TabCount>{activities.length}</TabCount>
                                 <Tabs.Indicator />
                             </Tabs.Tab>
                         </Tabs.List>
@@ -208,6 +239,32 @@ export default function ClassroomSubjectShow({
                             />
                         </Tabs.Panel>
                     )}
+
+                    <Tabs.Panel
+                        id="activities"
+                        className="flex flex-col gap-4 pt-6"
+                    >
+                        <PanelHeader
+                            title="Atividades"
+                            description="Atividades e material complementar da matéria."
+                            action={
+                                canManageActivities && (
+                                    <Button onPress={createActivityState.open}>
+                                        <Plus className="size-4" />
+                                        Nova atividade
+                                    </Button>
+                                )
+                            }
+                        />
+                        <ActivityList
+                            classroomId={room.id}
+                            classroomSubjectId={classroomSubject.id}
+                            activities={activities}
+                            onEdit={
+                                canManageActivities ? editActivity : undefined
+                            }
+                        />
+                    </Tabs.Panel>
                 </Tabs>
             </div>
 
@@ -225,6 +282,23 @@ export default function ClassroomSubjectShow({
                     classroomId={room.id}
                     classroomSubjectId={classroomSubject.id}
                     announcement={editing}
+                />
+            )}
+
+            {canManageActivities && (
+                <ActivityModal
+                    state={createActivityState}
+                    classroomId={room.id}
+                    classroomSubjectId={classroomSubject.id}
+                />
+            )}
+            {canManageActivities && editingActivity && (
+                <ActivityModal
+                    key={editingActivity.id}
+                    state={editActivityState}
+                    classroomId={room.id}
+                    classroomSubjectId={classroomSubject.id}
+                    activity={editingActivity}
                 />
             )}
         </>

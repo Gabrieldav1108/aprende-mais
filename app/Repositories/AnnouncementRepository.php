@@ -2,13 +2,11 @@
 
 namespace App\Repositories;
 
-use App\Enums\EnrollmentStatus;
 use App\Exceptions\RepositoryException;
 use App\Models\Announcement;
 use App\Models\ClassroomSubject;
 use App\Models\User;
 use App\Notifications\AnnouncementPublishedNotification;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -16,6 +14,8 @@ use Throwable;
 
 class AnnouncementRepository
 {
+    public function __construct(private readonly ClassroomSubjectRepository $classroomSubjects) {}
+
     /**
      * Get the classroom subject's announcements, pinned ones first and then newest first, with their author.
      *
@@ -54,27 +54,13 @@ class AnnouncementRepository
 
                 $announcement->setRelation('classroomSubject', $classroomSubject->loadMissing(['subject', 'classroom']));
 
-                Notification::send($this->recipientsFor($classroomSubject), new AnnouncementPublishedNotification($announcement));
+                Notification::send($this->classroomSubjects->activeStudentUsers($classroomSubject), new AnnouncementPublishedNotification($announcement));
 
                 return $announcement;
             });
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to publish announcement.', ['classroom_subject_id' => $classroomSubject->id], $e);
         }
-    }
-
-    /**
-     * Get the users of the students actively enrolled in the classroom subject's classroom.
-     *
-     * @return Collection<int, User>
-     */
-    public function recipientsFor(ClassroomSubject $classroomSubject): Collection
-    {
-        return User::query()
-            ->whereHas('student.classroomStudents', fn (Builder $query) => $query
-                ->where('classroom_id', $classroomSubject->classroom_id)
-                ->where('status', EnrollmentStatus::Active))
-            ->get();
     }
 
     /**

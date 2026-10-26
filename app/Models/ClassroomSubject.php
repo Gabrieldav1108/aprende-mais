@@ -56,4 +56,12 @@ class ClassroomSubject extends Model implements Auditable
     {
         return $this->hasMany(Announcement::class);
     }
+
+    /**
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
 }

@@ -6,9 +6,11 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\Shift;
 use App\Exceptions\RepositoryException;
 use App\Http\Requests\StoreClassroomSubjectRequest;
+use App\Models\Activity;
 use App\Models\Announcement;
 use App\Models\Classroom;
 use App\Models\ClassroomSubject;
+use App\Repositories\ActivityRepository;
 use App\Repositories\AnnouncementRepository;
 use App\Repositories\ClassroomSubjectRepository;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +23,7 @@ class ClassroomSubjectController extends Controller
     public function __construct(
         private readonly ClassroomSubjectRepository $classroomSubjects,
         private readonly AnnouncementRepository $announcements,
+        private readonly ActivityRepository $activities,
     ) {}
 
     /**
@@ -42,7 +45,7 @@ class ClassroomSubjectController extends Controller
     }
 
     /**
-     * Display the subject offered in the classroom with its teacher, announcements and, to staff, its students.
+     * Display the subject offered in the classroom with its teacher, announcements, activities and, to staff, its students.
      * Opening the page marks the user's notifications about this classroom subject as read.
      */
     public function show(Request $request, Classroom $classroom, ClassroomSubject $classroomSubject): Response
@@ -64,6 +67,8 @@ class ClassroomSubjectController extends Controller
             'classroomSubject' => $this->classroomSubjects->withDetails($classroomSubject),
             'announcements' => $this->announcements->forClassroomSubject($classroomSubject),
             'canManageAnnouncements' => $user->can('create', [Announcement::class, $classroomSubject]),
+            'activities' => $this->activities->forClassroomSubject($classroomSubject),
+            'canManageActivities' => $user->can('create', [Activity::class, $classroomSubject]),
             'shifts' => Shift::options(),
             ...$staffProps,
         ]);

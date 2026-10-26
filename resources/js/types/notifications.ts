@@ -1,6 +1,7 @@
 export type AppNotification = {
     id: string;
     data: {
+        kind?: 'activity';
         title: string;
         subject?: string;
         classroom?: string;

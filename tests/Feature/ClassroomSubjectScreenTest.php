@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Activity;
 use App\Models\Announcement;
+use App\Models\Attachment;
 use App\Models\Classroom;
 use App\Models\ClassroomStudent;
 use App\Models\ClassroomSubject;
@@ -130,6 +132,39 @@ test('the subject teacher may manage the announcements', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('canManageAnnouncements', true)
             ->has('students'));
+});
+
+test('a student sees the activities newest first with their files, without the deleted ones', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $student = enrollStudentNamed($classroom, 'Ana');
+    $older = Activity::factory()->forClassroomSubject($classroomSubject)->create(['created_at' => now()->subDay()]);
+    $newer = Activity::factory()->forClassroomSubject($classroomSubject)->create(['due_at' => now()->addWeek()]);
+    Activity::factory()->forClassroomSubject($classroomSubject)->create()->delete();
+    Activity::factory()->forClassroomSubject(offeredSubject($classroom))->create();
+    $file = Attachment::factory()->uploaded()->create(['original_name' => 'Lista.pdf']);
+    $file->attachable()->associate($newer)->save();
+    $this->actingAs($student->person->user);
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('activities', 2)
+            ->where('activities.0.id', $newer->id)
+            ->where('activities.0.attachments.0.id', $file->id)
+            ->where('activities.0.attachments.0.original_name', 'Lista.pdf')
+            ->missing('activities.0.attachments.0.path')
+            ->where('activities.1.id', $older->id)
+            ->where('canManageActivities', false));
+});
+
+test('the subject teacher may manage the activities', function () {
+    $classroom = Classroom::factory()->create();
+    $classroomSubject = offeredSubject($classroom);
+    $this->actingAs(Teacher::find($classroomSubject->teacher_id)->person->user);
+
+    $this->get(route('classroom.subjects.show', [$classroom, $classroomSubject]))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('canManageActivities', true));
 });
 
 test('a student not actively enrolled in the classroom cannot open its subjects', function (string $status) {

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcademicTermController;
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\CepController;
@@ -72,6 +73,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('classroom/{classroom}/subjects/{classroomSubject}/announcements', [AnnouncementController::class, 'store'])->name('classroom.subjects.announcements.store');
         Route::put('classroom/{classroom}/subjects/{classroomSubject}/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('classroom.subjects.announcements.update');
         Route::delete('classroom/{classroom}/subjects/{classroomSubject}/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('classroom.subjects.announcements.destroy');
+
+        Route::post('classroom/{classroom}/subjects/{classroomSubject}/activities', [ActivityController::class, 'store'])->name('classroom.subjects.activities.store');
+        Route::put('classroom/{classroom}/subjects/{classroomSubject}/activities/{activity}', [ActivityController::class, 'update'])->name('classroom.subjects.activities.update');
+        Route::delete('classroom/{classroom}/subjects/{classroomSubject}/activities/{activity}', [ActivityController::class, 'destroy'])->name('classroom.subjects.activities.destroy');
     });
 
     Route::get('my-subjects', [EnrolledSubjectController::class, 'index'])->name('enrolled-subject');

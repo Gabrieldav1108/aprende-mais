@@ -101,6 +101,20 @@ export function formatShortDateTime(value: string): string {
 }
 
 /**
+ * A stored timestamp as the local value a datetime-local input expects (2026-11-04T23:59).
+ */
+export function toDateTimeLocal(value: string | null | undefined): string {
+    if (!value) {
+        return '';
+    }
+
+    const date = new Date(value);
+    const pad = (part: number) => String(part).padStart(2, '0');
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/**
  * Format a file size in bytes for display (850 KB, 12,4 MB).
  */
 export function formatFileSize(bytes: number): string {
