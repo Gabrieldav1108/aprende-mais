@@ -46,6 +46,7 @@ class ClassroomSubjectController extends Controller
 
     /**
      * Display the subject offered in the classroom with its teacher, announcements, activities and, to staff, its students.
+     * An actively enrolled student also gets what they sent to each activity.
      * Opening the page marks the user's notifications about this classroom subject as read.
      */
     public function show(Request $request, Classroom $classroom, ClassroomSubject $classroomSubject): Response
@@ -63,12 +64,16 @@ class ClassroomSubjectController extends Controller
             'statuses' => EnrollmentStatus::options(),
         ] : [];
 
+        $canManageActivities = $user->can('create', [Activity::class, $classroomSubject]);
+        $submittingStudent = $user->student?->isActivelyEnrolledIn($classroomSubject->classroom_id) ? $user->student : null;
+
         return Inertia::render('classroom-subject/show', [
             'classroomSubject' => $this->classroomSubjects->withDetails($classroomSubject),
             'announcements' => $this->announcements->forClassroomSubject($classroomSubject),
             'canManageAnnouncements' => $user->can('create', [Announcement::class, $classroomSubject]),
-            'activities' => $this->activities->forClassroomSubject($classroomSubject),
-            'canManageActivities' => $user->can('create', [Activity::class, $classroomSubject]),
+            'activities' => $this->activities->forClassroomSubject($classroomSubject, $submittingStudent, $canManageActivities),
+            'canManageActivities' => $canManageActivities,
+            'canSubmitActivities' => $submittingStudent !== null,
             'shifts' => Shift::options(),
             ...$staffProps,
         ]);

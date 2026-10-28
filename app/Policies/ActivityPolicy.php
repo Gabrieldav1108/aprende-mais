@@ -9,7 +9,8 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Whoever sees the classroom subject sees its activities; only its teacher manages them. Admins pass through Gate::before.
+ * Whoever sees the classroom subject sees its activities; only its teacher manages them and sees the submissions.
+ * Admins pass through Gate::before.
  */
 class ActivityPolicy
 {
@@ -41,6 +42,14 @@ class ActivityPolicy
      * Determine whether the user can delete the activity.
      */
     public function delete(User $user, Activity $activity): bool
+    {
+        return $this->teaches($user, $activity->classroomSubject);
+    }
+
+    /**
+     * Determine whether the user can see what every student sent to the activity.
+     */
+    public function viewSubmissions(User $user, Activity $activity): bool
     {
         return $this->teaches($user, $activity->classroomSubject);
     }

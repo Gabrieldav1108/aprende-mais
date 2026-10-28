@@ -15,6 +15,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectCatalogController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserInvitationController;
@@ -77,6 +78,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('classroom/{classroom}/subjects/{classroomSubject}/activities', [ActivityController::class, 'store'])->name('classroom.subjects.activities.store');
         Route::put('classroom/{classroom}/subjects/{classroomSubject}/activities/{activity}', [ActivityController::class, 'update'])->name('classroom.subjects.activities.update');
         Route::delete('classroom/{classroom}/subjects/{classroomSubject}/activities/{activity}', [ActivityController::class, 'destroy'])->name('classroom.subjects.activities.destroy');
+
+        Route::get('classroom/{classroom}/subjects/{classroomSubject}/activities/{activity}/submissions', [SubmissionController::class, 'index'])->name('classroom.subjects.activities.submissions.index');
+        Route::post('classroom/{classroom}/subjects/{classroomSubject}/activities/{activity}/submissions', [SubmissionController::class, 'store'])->name('classroom.subjects.activities.submissions.store');
     });
 
     Route::get('my-subjects', [EnrolledSubjectController::class, 'index'])->name('enrolled-subject');

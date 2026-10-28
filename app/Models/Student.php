@@ -68,6 +68,14 @@ class Student extends Model implements Auditable
     }
 
     /**
+     * @return HasMany<Submission, $this>
+     */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(Submission::class);
+    }
+
+    /**
      * Whether the student has an active enrollment in the classroom.
      */
     public function isActivelyEnrolledIn(int $classroomId): bool

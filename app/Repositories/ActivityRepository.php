@@ -5,9 +5,12 @@ namespace App\Repositories;
 use App\Exceptions\RepositoryException;
 use App\Models\Activity;
 use App\Models\ClassroomSubject;
+use App\Models\Student;
 use App\Models\User;
 use App\Notifications\ActivityPublishedNotification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -21,11 +24,12 @@ class ActivityRepository
     ) {}
 
     /**
-     * Get the classroom subject's activities, newest first, with their author and supporting files.
+     * Get the classroom subject's activities, newest first, with their author and supporting files. A student also
+     * gets the versions they sent to each one, newest first; whoever sees the submissions gets how many students sent one.
      *
      * @return Collection<int, Activity>
      */
-    public function forClassroomSubject(ClassroomSubject $classroomSubject): Collection
+    public function forClassroomSubject(ClassroomSubject $classroomSubject, ?Student $student = null, bool $withSubmissionCounts = false): Collection
     {
         try {
             return $classroomSubject->activities()
@@ -35,6 +39,17 @@ class ActivityRepository
                         ->select(['id', 'attachable_type', 'attachable_id', 'original_name', 'mime_type', 'size'])
                         ->orderBy('id'),
                 ])
+                ->when($student !== null, fn (Builder $query) => $query->with([
+                    'submissions' => fn (HasMany $query) => $query
+                        ->where('student_id', $student->id)
+                        ->with(['attachments' => fn (MorphMany $query) => $query
+                            ->select(['id', 'attachable_type', 'attachable_id', 'original_name', 'mime_type', 'size'])
+                            ->orderBy('id')])
+                        ->latest('id'),
+                ]))
+                ->when($withSubmissionCounts, fn (Builder $query) => $query->withCount([
+                    'submissions as submitted_students_count' => fn (Builder $query) => $query->select(DB::raw('count(distinct student_id)')),
+                ]))
                 ->latest()
                 ->latest('id')
                 ->get();

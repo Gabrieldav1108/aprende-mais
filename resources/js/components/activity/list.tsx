@@ -1,9 +1,11 @@
 import { Button, Card, Chip, Dropdown, EmptyState } from '@heroui/react';
-import { router } from '@inertiajs/react';
-import { CalendarClock, Mail, MoreHorizontal } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { CalendarClock, Inbox, Mail, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import AttachmentList from '@/components/attachment-list';
 import type { AttachmentFile } from '@/components/attachment-list';
+import SubmissionStatusChip from '@/components/submission/status-chip';
+import type { Submission } from '@/components/submission/status-chip';
 import { formatShortDateTime } from '@/lib/format';
 import classroom from '@/routes/classroom';
 
@@ -16,6 +18,10 @@ export type Activity = {
     created_at: string;
     author: { id: number; name: string } | null;
     attachments: AttachmentFile[];
+    /** The versions the student sent, newest first; only sent to a student who answers the activities. */
+    submissions?: Submission[];
+    /** How many students sent an answer; only sent to whoever sees the submissions. */
+    submitted_students_count?: number;
 };
 
 type Props = {
@@ -23,7 +29,63 @@ type Props = {
     classroomSubjectId: number;
     activities: Activity[];
     onEdit?: (activity: Activity) => void;
+    onSubmit?: (activity: Activity) => void;
 };
+
+/**
+ * The student's current answer to the activity, with the button to send it or, until the due date, to change it.
+ */
+function OwnSubmission({
+    activity,
+    now,
+    onSubmit,
+}: {
+    activity: Activity;
+    now: number;
+    onSubmit: (activity: Activity) => void;
+}) {
+    const versions = activity.submissions ?? [];
+    const current = versions[0];
+    const isOpen =
+        activity.due_at === null || new Date(activity.due_at).getTime() > now;
+
+    return (
+        <div className="flex flex-col gap-2 rounded-lg border bg-muted/40 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-foreground">
+                    Sua entrega
+                </span>
+                <SubmissionStatusChip
+                    submission={current}
+                    dueAt={activity.due_at}
+                    now={now}
+                />
+                {current && (
+                    <span className="text-xs text-muted-foreground">
+                        {formatShortDateTime(current.created_at)}
+                        {versions.length > 1 && ` · ${versions.length} versões`}
+                    </span>
+                )}
+                {(!current || isOpen) && (
+                    <Button
+                        size="sm"
+                        variant={current ? 'secondary' : 'primary'}
+                        className="ml-auto"
+                        onPress={() => onSubmit(activity)}
+                    >
+                        {current ? 'Alterar entrega' : 'Entregar'}
+                    </Button>
+                )}
+            </div>
+            {current?.content && (
+                <p className="text-sm whitespace-pre-line text-foreground/80">
+                    {current.content}
+                </p>
+            )}
+            {current && <AttachmentList files={current.attachments} />}
+        </div>
+    );
+}
 
 /**
  * The due date of the activity, in red once it has passed.
@@ -42,13 +104,14 @@ function DueChip({ dueAt, now }: { dueAt: string; now: number }) {
 
 /**
  * The classroom subject's activities, newest first, each with its due date and supporting files;
- * the edit and delete menu only shows for whoever manages them.
+ * the edit and delete menu only shows for whoever manages them, and with onSubmit each one shows the student's answer.
  */
 export default function ActivityList({
     classroomId,
     classroomSubjectId,
     activities,
     onEdit,
+    onSubmit,
 }: Props) {
     const [now] = useState(() => Date.now());
 
@@ -104,6 +167,30 @@ export default function ActivityList({
                                     />
                                 )}
                             </p>
+                            {activity.submitted_students_count !==
+                                undefined && (
+                                <Link
+                                    href={classroom.subjects.activities.submissions.index(
+                                        [
+                                            classroomId,
+                                            classroomSubjectId,
+                                            activity.id,
+                                        ],
+                                    )}
+                                    className="flex w-fit items-center gap-1.5 text-sm font-medium text-foreground hover:underline"
+                                >
+                                    <Inbox className="size-4" />
+                                    Ver entregas (
+                                    {activity.submitted_students_count})
+                                </Link>
+                            )}
+                            {onSubmit && (
+                                <OwnSubmission
+                                    activity={activity}
+                                    now={now}
+                                    onSubmit={onSubmit}
+                                />
+                            )}
                         </div>
 
                         {onEdit && (

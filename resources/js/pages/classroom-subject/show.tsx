@@ -13,6 +13,7 @@ import type { ClassroomSubject } from '@/components/classroom/subjects-table';
 import type { Classroom } from '@/components/classroom/table';
 import ClassroomSubjectStudentsTable from '@/components/classroom-subject/students-table';
 import type { ClassroomSubjectStudent } from '@/components/classroom-subject/students-table';
+import SubmissionModal from '@/components/submission/modal';
 import { useCan } from '@/hooks/use-can';
 import {
     classroom as classroomIndex,
@@ -31,6 +32,7 @@ type Props = {
     canManageAnnouncements: boolean;
     activities: Activity[];
     canManageActivities: boolean;
+    canSubmitActivities: boolean;
     shifts: Record<string, string>;
     students?: ClassroomSubjectStudent[];
     statuses?: Record<string, string>;
@@ -78,6 +80,7 @@ export default function ClassroomSubjectShow({
     canManageAnnouncements,
     activities,
     canManageActivities,
+    canSubmitActivities,
     shifts,
     students,
     statuses,
@@ -93,6 +96,10 @@ export default function ClassroomSubjectShow({
     const [editingActivity, setEditingActivity] = useState<Activity | null>(
         null,
     );
+
+    const submissionState = useOverlayState();
+    const [submittingActivity, setSubmittingActivity] =
+        useState<Activity | null>(null);
     const tabs = [
         'announcements',
         ...(students ? ['students'] : []),
@@ -115,6 +122,11 @@ export default function ClassroomSubjectShow({
     const editActivity = (activity: Activity) => {
         setEditingActivity(activity);
         editActivityState.open();
+    };
+
+    const submitActivity = (activity: Activity) => {
+        setSubmittingActivity(activity);
+        submissionState.open();
     };
 
     const subjectHref = classroom.subjects.show([room.id, classroomSubject.id]);
@@ -263,6 +275,9 @@ export default function ClassroomSubjectShow({
                             onEdit={
                                 canManageActivities ? editActivity : undefined
                             }
+                            onSubmit={
+                                canSubmitActivities ? submitActivity : undefined
+                            }
                         />
                     </Tabs.Panel>
                 </Tabs>
@@ -299,6 +314,16 @@ export default function ClassroomSubjectShow({
                     classroomId={room.id}
                     classroomSubjectId={classroomSubject.id}
                     activity={editingActivity}
+                />
+            )}
+
+            {canSubmitActivities && submittingActivity && (
+                <SubmissionModal
+                    key={submittingActivity.id}
+                    state={submissionState}
+                    classroomId={room.id}
+                    classroomSubjectId={classroomSubject.id}
+                    activity={submittingActivity}
                 />
             )}
         </>
