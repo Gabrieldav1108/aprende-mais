@@ -25,7 +25,7 @@ class AttachmentRepository
             return Attachment::create([
                 'uploader_id' => $uploader->id,
                 'disk' => Attachment::DISK,
-                'path' => 'attachments/'.now()->format('Y/m').'/'.Str::lower((string) Str::ulid()).'.'.Attachment::MIME_TYPES[$data['mime_type']],
+                'path' => $this->newPath(Attachment::MIME_TYPES[$data['mime_type']]),
                 'original_name' => $data['name'],
                 'mime_type' => $data['mime_type'],
                 'size' => $data['size'],
@@ -91,6 +91,34 @@ class AttachmentRepository
     }
 
     /**
+     * Link a copy of each attachment to the record, its object copied inside the bucket, so the record owns its files
+     * while the originals stay with the record they belong to.
+     *
+     * @param  iterable<Attachment>  $attachments
+     */
+    public function copyTo(Model $attachable, iterable $attachments): void
+    {
+        try {
+            DB::transaction(function () use ($attachable, $attachments): void {
+                foreach ($attachments as $attachment) {
+                    $copy = $attachment->replicate();
+                    $copy->path = $this->newPath(pathinfo($attachment->path, PATHINFO_EXTENSION));
+                    $copy->attachable()->associate($attachable);
+
+                    Storage::disk($attachment->disk)->copy($attachment->path, $copy->path);
+
+                    $copy->save();
+                }
+            });
+        } catch (Throwable $e) {
+            throw new RepositoryException('Failed to copy attachments.', [
+                'attachable_type' => $attachable->getMorphClass(),
+                'attachable_id' => $attachable->getKey(),
+            ], $e);
+        }
+    }
+
+    /**
      * Remove the attachment and its object from the bucket.
      */
     public function discard(Attachment $attachment): void
@@ -104,5 +132,13 @@ class AttachmentRepository
         } catch (Throwable $e) {
             throw new RepositoryException('Failed to discard attachment.', ['attachment_id' => $attachment->id], $e);
         }
+    }
+
+    /**
+     * A new unique object path in the bucket, under the current month.
+     */
+    private function newPath(string $extension): string
+    {
+        return 'attachments/'.now()->format('Y/m').'/'.Str::lower((string) Str::ulid()).'.'.$extension;
     }
 }
