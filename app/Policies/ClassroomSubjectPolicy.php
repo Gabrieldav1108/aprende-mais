@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\EnrollmentStatus;
 use App\Models\ClassroomSubject;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -58,9 +57,6 @@ class ClassroomSubjectPolicy
     {
         $student = $user->student;
 
-        return $student !== null && $student->classroomStudents()
-            ->where('classroom_id', $classroomSubject->classroom_id)
-            ->where('status', EnrollmentStatus::Active)
-            ->exists();
+        return $student !== null && $student->isActivelyEnrolledIn($classroomSubject->classroom_id);
     }
 }

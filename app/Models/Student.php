@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\BelongsToSchoolThroughPerson;
 use App\Enums\ClassroomStatus;
+use App\Enums\EnrollmentStatus;
 use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -64,6 +65,17 @@ class Student extends Model implements Auditable
     public function attendences(): HasMany
     {
         return $this->hasMany(Attendence::class);
+    }
+
+    /**
+     * Whether the student has an active enrollment in the classroom.
+     */
+    public function isActivelyEnrolledIn(int $classroomId): bool
+    {
+        return $this->classroomStudents()
+            ->where('classroom_id', $classroomId)
+            ->where('status', EnrollmentStatus::Active)
+            ->exists();
     }
 
     /**
