@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Requests\IndexStudentRequest;
 
 class StudentController extends Controller
 {
@@ -27,17 +28,20 @@ class StudentController extends Controller
     /**
      * Display a listing of the students.
      */
-    public function index(Request $request): Response
-    {
-        $this->authorize('viewAny', Student::class);
+    public function index(IndexStudentRequest $request): Response
+{
+    $this->authorize('viewAny', Student::class);
 
-        return Inertia::render('student/index', [
-            'students' => $this->students->all($request->user()),
-            'people' => $this->people->availableFor(UserRole::Student->value),
-            'courses' => $this->courses->all()->map->only(['id', 'name']),
-            'statuses' => StudentStatus::options(),
-        ]);
-    }
+    $filters = $request->validated();
+
+    return Inertia::render('student/index', [
+        'students' => $this->students->paginate($request->user(), $filters)->withQueryString(),
+        'filters' => $filters,
+        'people' => $this->people->availableFor(UserRole::Student->value),
+        'courses' => $this->courses->all()->map->only(['id', 'name']),
+        'statuses' => StudentStatus::options(),
+    ]);
+}
 
     /**
      * Store a newly registered student.
